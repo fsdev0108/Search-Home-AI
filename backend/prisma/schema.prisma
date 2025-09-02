@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  role      String   @default("user") // admin, user, viewer
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  replicas  Replica[]
+
+  @@map("users")
+}
+
+model Replica {
+  id        String   @id @default(uuid())
+  name      String
+  purpose   String
+  shortDescription String
+  greeting  String
+  type      String   @default("character")
+  ownerID   String
+  private   Boolean  @default(false)
+  slug      String   @unique
+  tags      String   // JSON string
+  profileImage String?
+  suggestedQuestions String // JSON string
+  llm       String   // JSON string
+  voicePreviewText String
+  isAccessibleByCustomerSupport Boolean @default(true)
+  isEveryConversationAccessibleBySupport Boolean @default(true)
+  isPrivateConversationsEnabled Boolean @default(false)
+  introductionAudioID String?
+  sensayId  String
+  status    String   @default("active") // active, inactive, training
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [ownerID], references: [id])
+  uploadSchedules UploadSchedule[]
+
+  @@map("replicas")
+}
+
+model Property {
+  id         String   @id @default(uuid())
+  externalId String
+  title      String
+  description String
+  price      Float
+  location   String
+  bedrooms   Int
+  bathrooms  Int
+  area       Float
+  type       String   // rent, sale
+  status     String   @default("available") // available, sold, rented
+  metadata   String   // JSON string
+  lastSync   DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("properties")
+}
+
+model DataConnector {
+  id         String   @id @default(uuid())
+  name       String
+  type       String   // api, webhook, database, file
+  config     String   // JSON string
+  status     String   @default("active") // active, inactive, error
+  lastSync   DateTime?
+  syncCount  Int      @default(0)
+  errorCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("data_connectors")
+}
+
+model UploadSchedule {
+  id         String   @id @default(uuid())
+  replicaId  String
+  filePath   String
+  schedule   String   // daily, weekly, on-demand
+  lastUpload DateTime?
+  nextUpload DateTime
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  replica    Replica  @relation(fields: [replicaId], references: [id])
+
+  @@map("upload_schedules")
+}
+
+model FileUpload {
+  id             String   @id @default(uuid())
+  replicaId      String
+  fileName       String
+  filePath       String
+  knowledgeBaseId Int?
+  fileSize       Int
+  mimeType       String
+  uploadedAt     DateTime @default(now())
+  status         String   @default("pending") // pending, uploaded, failed
+
+  @@map("file_uploads")
+}
+

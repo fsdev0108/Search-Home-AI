@@ -1,0 +1,50 @@
+{
+  "name": "real-estate-ai-chat-widget",
+  "version": "1.0.0",
+  "description": "A lightweight, customizable JavaScript widget for AI-powered real estate assistance",
+  "main": "chat-widget.js",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node -e \"require('./build.js').build()\"",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "echo \"No linter specified\" && exit 0"
+  },
+  "keywords": [
+    "chat",
+    "widget",
+    "ai",
+    "real-estate",
+    "sensay",
+    "embed",
+    "javascript",
+    "chatbot"
+  ],
+  "author": "Real Estate AI Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/real-estate-ai-widget.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/real-estate-ai-widget/issues"
+  },
+  "homepage": "https://github.com/your-org/real-estate-ai-widget#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "chat-widget.js",
+    "chat-widget.min.js",
+    "README.md",
+    "EMBED_DOCUMENTATION.md",
+    "embed-example.html"
+  ],
+  "devDependencies": {},
+  "peerDependencies": {},
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}

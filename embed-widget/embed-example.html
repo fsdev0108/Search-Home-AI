@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate AI Chat Widget - Embed Example</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature h3 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+
+        .code-block {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: left;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .config-options {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .config-options h3 {
+            color: #ffd700;
+            margin-top: 0;
+        }
+
+        .config-item {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .config-item strong {
+            color: #00ff00;
+        }
+
+        .cta {
+            background: #ffd700;
+            color: #333;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin: 2rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .note {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .note strong {
+            color: #ffc107;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🏠 Real Estate AI Chat Widget</h1>
+        <p class="subtitle">Embed AI-powered real estate assistance in any website</p>
+
+        <div class="features">
+            <div class="feature">
+                <h3>🚀 Easy Integration</h3>
+                <p>Just add two lines of code to any website</p>
+            </div>
+            <div class="feature">
+                <h3>🎨 Customizable</h3>
+                <p>Choose colors, position, and theme</p>
+            </div>
+            <div class="feature">
+                <h3>📱 Responsive</h3>
+                <p>Works perfectly on all devices</p>
+            </div>
+        </div>
+
+        <h2>Quick Start</h2>
+        <div class="code-block">
+            &lt;!-- Add this to your HTML head or before closing body tag --&gt;
+            &lt;script src="https://yourdomain.com/chat-widget.js"&gt;&lt;/script&gt;
+            &lt;script&gt;
+            RealEstateChat.init({
+            apiKey: 'your_sensay_api_key',
+            userId: 'your_user_id',
+            replicaUuid: 'your_replica_uuid'
+            });
+            &lt;/script&gt;
+        </div>
+
+        <div class="config-options">
+            <h3>Configuration Options</h3>
+
+            <div class="config-item">
+                <strong>apiKey</strong> (required) - Your Sensay API key
+            </div>
+
+            <div class="config-item">
+                <strong>userId</strong> (required) - Your existing Sensay user ID
+            </div>
+
+            <div class="config-item">
+                <strong>replicaUuid</strong> (required) - Your existing Sensay replica UUID
+            </div>
+
+            <div class="config-item">
+                <strong>position</strong> - Widget position: 'bottom-right', 'bottom-left', 'top-right', 'top-left'
+            </div>
+
+            <div class="config-item">
+                <strong>theme</strong> - Theme: 'light', 'dark', or 'auto' (follows system preference)
+            </div>
+
+            <div class="config-item">
+                <strong>primaryColor</strong> - Primary color in hex format (e.g., '#3cacae')
+            </div>
+        </div>
+
+        <h2>Advanced Example</h2>
+        <div class="code-block">
+            RealEstateChat.init({
+            apiKey: 'sk_1234567890abcdef',
+            userId: 'user_12345',
+            replicaUuid: 'replica_uuid_here',
+            position: 'bottom-left',
+            theme: 'dark',
+            primaryColor: '#ff6b6b'
+            });
+        </div>
+
+        <div class="note">
+            <strong>Note:</strong> Make sure you have already created a user and replica in your Sensay dashboard before
+            using this widget.
+        </div>
+
+        <h2>Features</h2>
+        <div class="features">
+            <div class="feature">
+                <h3>💬 Real-time Chat</h3>
+                <p>Direct integration with Sensay AI</p>
+            </div>
+            <div class="feature">
+                <h3>🎯 Position Control</h3>
+                <p>Place widget anywhere on the page</p>
+            </div>
+            <div class="feature">
+                <h3>🌙 Theme Support</h3>
+                <p>Light, dark, and auto themes</p>
+            </div>
+            <div class="feature">
+                <h3>📱 Mobile Optimized</h3>
+                <p>Responsive design for all devices</p>
+            </div>
+        </div>
+
+        <a href="#" class="cta">Get Started Now</a>
+
+        <p style="margin-top: 3rem; opacity: 0.7;">
+            Powered by Sensay AI • Real Estate Intelligence
+        </p>
+    </div>
+
+    <!-- This is the actual widget - you can see it working on this page! -->
+    <script src="chat-widget.js"></script>
+    <script>
+        // Example configuration - replace with your actual values
+        RealEstateChat.init({
+            apiKey: 'your_api_key_here',
+            userId: 'your_user_id_here',
+            replicaUuid: 'your_replica_uuid_here',
+            position: 'bottom-right',
+            theme: 'auto',
+            primaryColor: '#3cacae'
+        });
+    </script>
+</body>
+
+</html>
