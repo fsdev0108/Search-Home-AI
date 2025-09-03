@@ -15,6 +15,7 @@ model User {
   name      String
   email     String   @unique
   role      String   @default("user") // admin, user, viewer
+  password  String?  // Hash da senha para autenticação
   sensayId  String?  // ID from Sensay API
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

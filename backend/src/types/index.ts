@@ -13,8 +13,13 @@ export interface User {
   email: string
   role: 'admin' | 'user' | 'viewer'
   sensayId?: string
+  password?: string
   createdAt: Date
   updatedAt: Date
+}
+
+export interface UserWithPassword extends User {
+  password: string
 }
 
 export interface CreateUserRequest {

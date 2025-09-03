@@ -7,8 +7,8 @@ export class UserService {
       data: {
         name,
         email,
-        role: 'user', // Default role
-        sensayId: sensayId || null
+        role: 'user',
+        sensayId
       }
     })
 
@@ -16,11 +16,38 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role as 'admin' | 'user' | 'viewer',
+      role: user.role as 'admin' | 'user',
+      password: (user as any).password || undefined,
       sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     }
+  }
+
+  async createUserWithPassword(name: string, email: string, password: string, role: 'admin' | 'user'): Promise<User> {
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: password as any,
+        role
+      } as any
+    })
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role as 'admin' | 'user',
+      password: (user as any).password || undefined,
+      sensayId: user.sensayId || undefined,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }
+  }
+
+  async getUsersCount(): Promise<number> {
+    return await prisma.user.count()
   }
 
   async getUserById(id: string): Promise<User | null> {
@@ -34,7 +61,8 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role as 'admin' | 'user' | 'viewer',
+      role: user.role as 'admin' | 'user',
+      password: (user as any).password || undefined,
       sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
@@ -52,7 +80,8 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role as 'admin' | 'user' | 'viewer',
+      role: user.role as 'admin' | 'user',
+      password: (user as any).password || undefined,
       sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
@@ -73,7 +102,8 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role as 'admin' | 'user' | 'viewer',
+      role: user.role as 'admin' | 'user',
+      password: (user as any).password || undefined,
       sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
@@ -87,7 +117,8 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role as 'admin' | 'user' | 'viewer',
+      role: user.role as 'admin' | 'user',
+      password: user.password || undefined,
       sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
