@@ -12,8 +12,29 @@ export interface User {
   name: string
   email: string
   role: 'admin' | 'user' | 'viewer'
+  sensayId?: string
   createdAt: Date
   updatedAt: Date
+}
+
+export interface CreateUserRequest {
+  name: string
+  email: string
+}
+
+export interface UpdateUserRequest {
+  name?: string
+  email?: string
+}
+
+export interface SensayUser {
+  id: string
+  name: string
+  email: string
+  role: string
+  organizationId: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface SensayReplica {

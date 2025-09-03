@@ -2,11 +2,13 @@ import { User } from '../types'
 import { prisma } from '../lib/prisma'
 
 export class UserService {
-  async createUser(name: string, email: string): Promise<User> {
+  async createUser(name: string, email: string, sensayId?: string): Promise<User> {
     const user = await prisma.user.create({
       data: {
         name,
-        email
+        email,
+        role: 'user', // Default role
+        sensayId: sensayId || null
       }
     })
 
@@ -14,6 +16,8 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role as 'admin' | 'user' | 'viewer',
+      sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     }
@@ -30,6 +34,8 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role as 'admin' | 'user' | 'viewer',
+      sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     }
@@ -46,6 +52,8 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role as 'admin' | 'user' | 'viewer',
+      sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     }
@@ -56,7 +64,8 @@ export class UserService {
       where: { id },
       data: {
         name: updates.name,
-        email: updates.email
+        email: updates.email,
+        role: updates.role
       }
     })
 
@@ -64,6 +73,8 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role as 'admin' | 'user' | 'viewer',
+      sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     }
@@ -76,8 +87,21 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role as 'admin' | 'user' | 'viewer',
+      sensayId: user.sensayId || undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     }))
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    try {
+      await prisma.user.delete({
+        where: { id }
+      })
+      return true
+    } catch (error) {
+      return false
+    }
   }
 }

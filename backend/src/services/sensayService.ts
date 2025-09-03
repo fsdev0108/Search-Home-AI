@@ -1,5 +1,5 @@
 import { config } from '../config'
-import { SensayReplica, SensayUploadResponse, ReplicaCreationRequest } from '../types'
+import { SensayReplica, SensayUploadResponse, ReplicaCreationRequest, SensayUser } from '../types'
 import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs'
 import path from 'path'
@@ -34,6 +34,21 @@ export class SensayService {
     }
 
     return response.json()
+  }
+
+  async createUser(name: string, email: string): Promise<SensayUser> {
+    const payload = {
+      name,
+      email,
+      role: 'user'
+    }
+
+    const response = await this.makeRequest('/users', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+
+    return response
   }
 
   async createReplica(replicaData: ReplicaCreationRequest): Promise<SensayReplica> {

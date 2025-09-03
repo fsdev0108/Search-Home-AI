@@ -53,13 +53,22 @@ export class SensayController {
     try {
       const { name, email } = request.body
       
+      // Check if user already exists in local database
       const existingUser = await this.userService.getUserByEmail(email)
       if (existingUser) {
         return ResponseHandler.error(reply, 'User with this email already exists', 409)
       }
 
-      const user = await this.userService.createUser(name, email)
-      return ResponseHandler.success(reply, user, 'User created successfully', 201)
+      // Create user in Sensay first (following hierarchical structure)
+      const sensayUser = await this.sensayService.createUser(name, email)
+      
+      // Save user to local database with Sensay ID
+      const user = await this.userService.createUser(name, email, sensayUser.id)
+      
+      return ResponseHandler.success(reply, {
+        ...user,
+        sensayId: sensayUser.id
+      }, 'User created successfully in Sensay and local database', 201)
     } catch (error) {
       return ResponseHandler.error(reply, 'Failed to create user')
     }
