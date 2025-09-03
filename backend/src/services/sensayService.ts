@@ -54,27 +54,16 @@ export class SensayService {
   async createReplica(replicaData: ReplicaCreationRequest): Promise<SensayReplica> {
     const payload = {
       name: replicaData.name,
-      purpose: replicaData.purpose,
       shortDescription: replicaData.shortDescription,
       greeting: replicaData.greeting,
-      type: 'character',
       ownerID: replicaData.ownerID,
-      private: false,
-      whitelistEmails: [],
       slug: replicaData.slug,
-      tags: replicaData.tags || [],
-      profileImage: replicaData.profileImage,
-      suggestedQuestions: replicaData.suggestedQuestions || [],
       llm: {
-        model: 'gpt-4o',
-        memoryMode: 'rag-search',
-        systemMessage: 'Concise, knowledgeable, empathetic and cheerful.',
-        tools: ['getTokenInfo']
-      },
-      voicePreviewText: 'Hi, I\'m your Sensay replica! How can I assist you today?',
-      isAccessibleByCustomerSupport: true,
-      isEveryConversationAccessibleBySupport: true,
-      isPrivateConversationsEnabled: false
+        model: "gpt-4o",
+        memoryMode: "rag-search",
+        systemMessage: "Concise, knowledgeable, empathetic and cheerful.",
+        tools: ["getTokenInfo"]
+      }
     }
 
     const response = await this.makeRequest('/replicas', {

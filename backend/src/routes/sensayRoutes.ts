@@ -5,7 +5,7 @@ export async function sensayRoutes(fastify: FastifyInstance) {
   const sensayController = new SensayController()
 
   // User management
-  fastify.post('/users', sensayController.createUser.bind(sensayController))
+  fastify.post('/sensay/users', sensayController.createUser.bind(sensayController))
 
   // Replica management
   fastify.post('/replicas', sensayController.createReplica.bind(sensayController))

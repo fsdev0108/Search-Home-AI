@@ -80,14 +80,10 @@ export interface FileUploadRequest {
 
 export interface ReplicaCreationRequest {
   name: string
-  purpose: string
   shortDescription: string
   greeting: string
   ownerID: string
   slug: string
-  tags?: string[]
-  profileImage?: string
-  suggestedQuestions?: string[]
 }
 
 export interface UploadSchedule {
@@ -95,7 +91,7 @@ export interface UploadSchedule {
   replicaId: string
   filePath: string
   schedule: 'daily' | 'weekly' | 'on-demand'
-  lastUpload: Date
+  lastUpload: Date | null
   nextUpload: Date
   isActive: boolean
 }
