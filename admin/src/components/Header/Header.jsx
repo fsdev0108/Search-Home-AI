@@ -17,7 +17,7 @@ const Header = ({ currentTab, onTabChange, user, onLogout }) => {
     return (
         <header className="header">
             <div className="header-content">
-                <h1 className="logo">Sensay Admin</h1>
+                <h1 className="logo">Herainov Admin</h1>
 
                 <nav className="nav">
                     {tabs.map(tab => {
