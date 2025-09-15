@@ -4,12 +4,14 @@ import { User } from '../types'
 
 interface AuthenticatedRequest extends FastifyRequest {
   user?: User
+  organizationId?: string
 }
 
 export interface JWTPayload {
   userId: string
   email: string
   role: string
+  organizationId?: string
 }
 
 export const authMiddleware = async (request: AuthenticatedRequest, reply: FastifyReply) => {
@@ -34,6 +36,11 @@ export const authMiddleware = async (request: AuthenticatedRequest, reply: Fasti
       name: '',
       createdAt: new Date(),
       updatedAt: new Date()
+    }
+    
+    // Set organization ID if present
+    if (decoded.organizationId) {
+      request.organizationId = decoded.organizationId
     }
 
     return
@@ -67,3 +74,34 @@ export const requireRole = (allowedRoles: string[]) => {
 
 export const requireAdmin = requireRole(['admin'])
 export const requireUser = requireRole(['admin', 'user'])
+
+export const requireOrganizationAccess = async (request: AuthenticatedRequest, reply: FastifyReply) => {
+  if (!request.user) {
+    return reply.status(401).send({
+      success: false,
+      error: 'Authentication required'
+    })
+  }
+
+  // Extract organization ID from URL params
+  const organizationId = (request.params as any)?.organizationId
+  
+  if (!organizationId) {
+    return reply.status(400).send({
+      success: false,
+      error: 'Organization ID required'
+    })
+  }
+
+  // For now, allow access if user is admin or has organization access
+  // TODO: Implement proper organization membership validation
+  if (request.user.role === 'admin' || request.organizationId === organizationId) {
+    request.organizationId = organizationId
+    return
+  }
+
+  return reply.status(403).send({
+    success: false,
+    error: 'Access denied to this organization'
+  })
+}

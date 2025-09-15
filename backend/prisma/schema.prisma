@@ -10,113 +10,58 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  role      String   @default("user") // admin, user, viewer
-  password  String?  // Hash da senha para autenticação
-  sensayId  String?  // ID from Sensay API
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// Simplified schema - Sensay manages organizations, users, and replicas
+// We only store what we need locally for our integrations
 
-  replicas  Replica[]
-
-  @@map("users")
-}
-
-model Replica {
-  id        String   @id @default(uuid())
-  name      String
-  purpose   String
-  shortDescription String
-  greeting  String
-  type      String   @default("character")
-  ownerID   String
-  private   Boolean  @default(false)
-  slug      String   @unique
-  tags      String   // JSON string
-  profileImage String?
-  suggestedQuestions String // JSON string
-  llm       String   // JSON string
-  voicePreviewText String
-  isAccessibleByCustomerSupport Boolean @default(true)
-  isEveryConversationAccessibleBySupport Boolean @default(true)
-  isPrivateConversationsEnabled Boolean @default(false)
-  introductionAudioID String?
-  sensayId  String
-  status    String   @default("active") // active, inactive, training
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user      User     @relation(fields: [ownerID], references: [id])
-  uploadSchedules UploadSchedule[]
-
-  @@map("replicas")
-}
-
-model Property {
-  id         String   @id @default(uuid())
-  externalId String
-  title      String
-  description String
-  price      Float
-  location   String
-  bedrooms   Int
-  bathrooms  Int
-  area       Float
-  type       String   // rent, sale
-  status     String   @default("available") // available, sold, rented
-  metadata   String   // JSON string
-  lastSync   DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@map("properties")
-}
-
-model DataConnector {
-  id         String   @id @default(uuid())
-  name       String
-  type       String   // api, webhook, database, file
-  config     String   // JSON string
-  status     String   @default("active") // active, inactive, error
-  lastSync   DateTime?
-  syncCount  Int      @default(0)
-  errorCount Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@map("data_connectors")
-}
-
-model UploadSchedule {
-  id         String   @id @default(uuid())
-  replicaId  String
-  filePath   String
-  schedule   String   // daily, weekly, on-demand
-  lastUpload DateTime?
-  nextUpload DateTime
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  replica    Replica  @relation(fields: [replicaId], references: [id])
-
-  @@map("upload_schedules")
-}
-
-model FileUpload {
+model IntegrationSettings {
   id             String   @id @default(uuid())
-  replicaId      String
-  fileName       String
-  filePath       String
-  knowledgeBaseId Int?
-  fileSize       Int
-  mimeType       String
-  uploadedAt     DateTime @default(now())
-  status         String   @default("pending") // pending, uploaded, failed
+  organizationSecret String @unique // X-ORGANIZATION-SECRET from Sensay
+  organizationName String
+  settings       String   // JSON string for app-specific settings
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  @@map("file_uploads")
+  hubspotSettings HubSpotSettings?
+  syncLogs       SyncLog[]
+
+  @@map("integration_settings")
+}
+
+// Removed models that are now managed by Sensay API
+// - Property: managed by external systems (HubSpot, etc.)
+// - DataConnector: replaced by IntegrationSettings
+// - UploadSchedule: managed by Sensay
+// - FileUpload: managed by Sensay
+
+model HubSpotSettings {
+  id             String   @id @default(uuid())
+  integrationId  String   @unique
+  apiKey         String
+  isConnected    Boolean  @default(false)
+  lastSync       DateTime?
+  propertiesCount Int     @default(0)
+  syncStatus     String   @default("idle") // idle, syncing, success, error
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  integration    IntegrationSettings @relation(fields: [integrationId], references: [id])
+
+  @@map("hubspot_settings")
+}
+
+model SyncLog {
+  id             String   @id @default(uuid())
+  integrationId  String
+  replicaId      String?  // Sensay replica ID
+  operation      String   // sync, upload, create_user, etc.
+  status         String   // success, error, pending
+  details        String?  // JSON string with operation details
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+
+  integration    IntegrationSettings @relation(fields: [integrationId], references: [id])
+
+  @@map("sync_logs")
 }
 

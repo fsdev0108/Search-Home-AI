@@ -1,296 +1,336 @@
-# 🏠 Real Estate AI Agent - Sensay Project
+# Sensay Real Estate AI Agent
 
-A comprehensive AI-powered real estate platform built with modern technologies and clean architecture.
+Uma plataforma de integração que conecta sistemas de CRM (HubSpot) com agentes de IA da Sensay para automatizar o atendimento imobiliário.
 
-## 🚀 Project Overview
+## 🏗️ Arquitetura
 
-This project consists of three main components:
+### Visão Geral
+A aplicação segue uma arquitetura simplificada que utiliza a API da Sensay como backend principal, mantendo apenas configurações locais necessárias.
 
-1. **Backend** - Node.js API with Fastify and Prisma
-2. **Frontend** - Next.js 15 web application
-3. **Embed Widget** - Standalone JavaScript widget for external websites
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Admin Panel   │    │   Backend API   │    │  Sensay API     │
+│   (React/Vite)  │◄──►│   (Fastify)     │◄──►│  (External)     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend UI   │    │   Local DB      │    │ Organizations   │
+│   - Settings    │    │   (SQLite)      │    │ - Users         │
+│   - Dashboard   │    │   - Integrations│    │ - Replicas      │
+│   - HubSpot     │    │   - HubSpot     │    │ - Knowledge     │
+└─────────────────┘    │   - Sync Logs   │    │   Base          │
+                       └─────────────────┘    └─────────────────┘
+```
 
-## 📁 Project Structure
+### Hierarquia Sensay
+```
+Organizations (X-ORGANIZATION-SECRET)
+    ├── Users (X-USER-ID)
+    │   └── Replicas (AI Agents)
+    │       └── Knowledge Base (Training Data)
+    └── Settings & Configurations
+```
+
+## 🚀 Tecnologias
+
+### Backend
+- **Fastify** - Framework web rápido
+- **TypeScript** - Tipagem estática
+- **Prisma** - ORM para banco de dados
+- **SQLite** - Banco de dados local
+- **Axios** - Cliente HTTP para Sensay API
+
+### Frontend
+- **React** - Interface de usuário
+- **Vite** - Build tool
+- **CSS Modules** - Estilização
+
+### Integrações
+- **Sensay API** - Gerenciamento de agentes IA
+- **HubSpot API** - CRM de imóveis
+
+## 📁 Estrutura do Projeto
 
 ```
 sensay/
-├── backend/                 # Node.js API server
+├── backend/                 # API Backend
 │   ├── src/
-│   │   ├── controllers/     # API controllers
-│   │   ├── services/        # Business logic
-│   │   ├── routes/          # API routes
-│   │   ├── middlewares/     # Custom middlewares
-│   │   ├── types/           # TypeScript types
-│   │   ├── utils/           # Utility functions
-│   │   └── config/          # Configuration
-│   ├── prisma/              # Database schema and migrations
-│   └── README.md            # Backend documentation
-├── frontend/                # Next.js web application
-│   ├── components/          # React components
-│   ├── pages/               # Next.js pages
-│   ├── styles/              # CSS and styling
-│   ├── sdk/                 # Auto-generated Sensay SDK
-│   └── README.md            # Frontend documentation
-├── embed-widget/            # Standalone chat widget
-│   ├── chat-widget.js       # Main widget code
-│   ├── config.js            # Widget configuration
-│   ├── build.js             # Build script
-│   ├── dist/                # Production files
-│   └── README.md            # Widget documentation
-└── README.md                # This file
+│   │   ├── controllers/     # Controladores
+│   │   │   └── sensayController.ts
+│   │   ├── routes/          # Rotas da API
+│   │   │   ├── index.ts
+│   │   │   ├── sensayRoutes.ts
+│   │   │   └── authRoutes.ts
+│   │   ├── services/        # Serviços
+│   │   │   ├── sensayApiService.ts
+│   │   │   └── hubspotDataSimulator.ts
+│   │   ├── middlewares/     # Middlewares
+│   │   ├── utils/           # Utilitários
+│   │   └── config/          # Configurações
+│   ├── prisma/              # Schema do banco
+│   │   └── schema.prisma
+│   └── uploads/             # Arquivos CSV gerados
+├── admin/                   # Painel Administrativo
+│   ├── src/
+│   │   ├── components/      # Componentes React
+│   │   │   ├── Settings/
+│   │   │   ├── Dashboard/
+│   │   │   └── Header/
+│   │   └── App.jsx
+│   └── public/
+└── frontend/                # Frontend Principal
+    ├── pages/
+    └── components/
 ```
 
-## 🎯 Key Features
+## 🗄️ Schema do Banco de Dados
 
-### Backend
-- **Clean Architecture** with separation of concerns
-- **Prisma ORM** for database management
-- **Fastify** for high-performance API server
-- **Sensay API Integration** for AI capabilities
-- **Scheduled tasks** for automated operations
-- **Multi-tenancy ready** for future SaaS expansion
+### Modelos Principais
 
-### Frontend
-- **Modern UI/UX** with Tailwind CSS 4
-- **Responsive design** for all devices
-- **Theme system** with CSS variables
-- **Real-time chat** with Sensay AI
-- **Property management** interface
-- **TypeScript** for type safety
+```prisma
+model IntegrationSettings {
+  id                String   @id @default(uuid())
+  organizationSecret String  @unique  // X-ORGANIZATION-SECRET da Sensay
+  organizationName  String
+  settings          String?  // JSON com configurações locais
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-### Embed Widget
-- **Lightweight** (~10KB minified)
-- **Customizable** colors, position, theme
-- **No dependencies** - pure JavaScript
-- **Easy integration** in any website
-- **Real-time AI chat** powered by Sensay
+  hubspotSettings   HubSpotSettings?
+  syncLogs          SyncLog[]
+}
 
-## 🚀 Quick Start
+model HubSpotSettings {
+  id             String   @id @default(uuid())
+  integrationId  String   @unique
+  apiKey         String
+  isConnected    Boolean  @default(false)
+  lastSync       DateTime?
+  propertiesCount Int     @default(0)
+  syncStatus     String   @default("idle")
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-### 1. Backend Setup
+  integration    IntegrationSettings @relation(fields: [integrationId], references: [id])
+}
+
+model SyncLog {
+  id             String   @id @default(uuid())
+  integrationId  String
+  replicaId      String?  // ID da replica na Sensay
+  operation      String   // sync, upload, create_user, etc.
+  status         String   // success, error, pending
+  details        String?  // JSON com detalhes da operação
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+
+  integration    IntegrationSettings @relation(fields: [integrationId], references: [id])
+}
+```
+
+## 🔧 Configuração
+
+### 1. Backend
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
-# Configure your .env file
-npm run db:generate
-npm run db:push
+npx prisma migrate dev
 npm run dev
 ```
 
-### 2. Frontend Setup
+### 2. Admin Panel
 
 ```bash
-cd frontend
+cd admin
 npm install
-cp .env.local.example .env.local
-# Configure your .env.local file
 npm run dev
 ```
 
-### 3. Embed Widget Setup
+### 3. Variáveis de Ambiente
 
-```bash
-cd embed-widget
-npm install
-npm run build
-# Upload dist/chat-widget.min.js to your CDN
-```
-
-## 🔑 Configuration
-
-### Required Environment Variables
-
-#### Backend (.env)
-```bash
-# Database
+```env
+# Backend (.env)
 DATABASE_URL="file:./dev.db"
+PORT=3000
+HOST=0.0.0.0
 
 # Sensay API
-SENSAY_API_KEY=your_sensay_api_key
-SENSAY_API_VERSION=2025-03-25
+SENSAY_BASE_URL="https://api.sensay.io/v1"
+SENSAY_ORGANIZATION_SECRET="your-organization-secret"
+SENSAY_API_VERSION="2025-03-25"
 
-# Server
-PORT=3001
-NODE_ENV=development
+# HubSpot
+DEFAULT_HUBSPOT_API_KEY="your-hubspot-api-key"
 ```
 
-#### Frontend (.env.local)
+## 📡 API Endpoints
+
+### Integrações
+- `GET /api/v1/integrations` - Listar integrações
+- `POST /api/v1/integrations` - Criar integração
+
+### HubSpot
+- `POST /api/v1/integrations/:id/hubspot/connect` - Conectar HubSpot
+- `POST /api/v1/integrations/:id/hubspot/sync` - Sincronizar dados
+- `GET /api/v1/integrations/:id/hubspot/status` - Status da conexão
+
+### Sensay (via API)
+- `POST /api/v1/integrations/:id/users` - Criar usuário
+- `GET /api/v1/integrations/:id/users` - Listar usuários
+- `POST /api/v1/integrations/:id/replicas` - Criar replica
+- `GET /api/v1/integrations/:id/replicas` - Listar replicas
+
+### Logs
+- `GET /api/v1/integrations/:id/logs` - Logs de sincronização
+
+## 🔄 Fluxo de Trabalho
+
+### 1. Configuração Inicial
+```mermaid
+graph TD
+    A[Admin Panel] --> B[Criar Integração]
+    B --> C[Inserir Organization Secret]
+    C --> D[Validar Conexão Sensay]
+    D --> E[Integração Criada]
+```
+
+### 2. Integração HubSpot
+```mermaid
+graph TD
+    A[Configurar HubSpot] --> B[Inserir API Key]
+    B --> C[Testar Conexão]
+    C --> D[HubSpot Conectado]
+```
+
+### 3. Sincronização de Dados
+```mermaid
+graph TD
+    A[Iniciar Sync] --> B[Buscar Dados HubSpot]
+    B --> C[Gerar CSV]
+    C --> D[Buscar Replicas Sensay]
+    D --> E[Upload para Knowledge Base]
+    E --> F[Log de Sincronização]
+```
+
+## 🎯 Funcionalidades
+
+### ✅ Implementadas
+- [x] Criação de integrações com Sensay
+- [x] Configuração de HubSpot por integração
+- [x] Sincronização automática de dados
+- [x] Geração de CSV genérico
+- [x] Upload para knowledge base da Sensay
+- [x] Logs de operações
+- [x] Interface administrativa
+
+### 🔄 Em Desenvolvimento
+- [ ] Autenticação de usuários
+- [ ] Dashboard de métricas
+- [ ] Agendamento de sincronizações
+- [ ] Múltiplas integrações simultâneas
+
+## 🚀 Como Usar
+
+### 1. Acessar Admin Panel
+```
+http://localhost:5173
+```
+
+### 2. Criar Integração
+1. Inserir nome da organização
+2. Inserir `X-ORGANIZATION-SECRET` da Sensay
+3. Clicar em "Create Integration"
+
+### 3. Configurar HubSpot
+1. Inserir API Key do HubSpot
+2. Clicar em "Connect HubSpot"
+
+### 4. Sincronizar Dados
+1. Clicar em "Sync Now"
+2. Aguardar processamento
+3. Verificar logs de sincronização
+
+## 🔍 Monitoramento
+
+### Logs de Sincronização
+```json
+{
+  "id": "uuid",
+  "integrationId": "uuid",
+  "replicaId": "sensay-replica-id",
+  "operation": "hubspot_sync",
+  "status": "success",
+  "details": {
+    "propertiesCount": 25,
+    "replicasUpdated": 3,
+    "uploadResults": [...]
+  },
+  "createdAt": "2025-01-15T18:30:00Z"
+}
+```
+
+### Status da API
 ```bash
-# Sensay API
-NEXT_PUBLIC_SENSAY_API_KEY_SECRET=your_sensay_api_key
-NEXT_PUBLIC_SENSAY_USER_ID=your_user_id
-NEXT_PUBLIC_SENSAY_REPLICA_UUID=your_replica_uuid
+curl http://localhost:3000/api/v1/integrations
 ```
 
-## 🌐 API Endpoints
+## 🛠️ Desenvolvimento
 
-### Backend API (Port 3001)
-
-- `POST /api/users` - Create user
-- `POST /api/replicas` - Create replica
-- `POST /api/upload` - Upload files to Sensay
-- `GET /api/data-sources` - List data sources
-- `POST /api/data-sources/sync` - Sync data to Sensay
-
-### Frontend (Port 3000)
-
-- `/` - Home page with chat assistant
-- `/property/[id]` - Property detail page
-- Chat interface integrated with Sensay AI
-
-## 🔧 Development
-
-### Backend Development
-
+### Comandos Úteis
 ```bash
-cd backend
-npm run dev          # Development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run db:studio    # Open Prisma Studio
-npm run db:generate  # Generate Prisma client
-npm run db:push      # Push schema to database
+# Backend
+npm run dev          # Desenvolvimento
+npm run build        # Build
+npx prisma studio    # Interface do banco
+npx prisma migrate   # Migrações
+
+# Admin
+npm run dev          # Desenvolvimento
+npm run build        # Build
 ```
 
-### Frontend Development
+### Estrutura de Dados CSV
+O sistema gera CSVs genéricos que se adaptam a diferentes estruturas de dados:
 
-```bash
-cd frontend
-npm run dev          # Development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run generate-sdk # Regenerate Sensay SDK
+```csv
+title,price,location,bedrooms,bathrooms,area,type,status
+Apartamento Jardim Botânico,750000,Rua das Flores 123,3,2,120,sale,available
+Casa Residencial,450000,Av. Principal 456,4,3,180,sale,available
 ```
 
-### Widget Development
+## 📝 Notas Técnicas
 
-```bash
-cd embed-widget
-npm run dev          # Build widget
-npm run build        # Build for production
-```
+### Sensay API Integration
+- Utiliza `X-ORGANIZATION-SECRET` para autenticação
+- Suporte completo para usuários, replicas e knowledge base
+- Upload de dados via endpoint `/replicas/{id}/knowledge-base`
 
-## 🚀 Deployment
+### HubSpot Simulation
+- Simula busca de dados do HubSpot
+- Gera dados mockados para demonstração
+- CSV genérico compatível com diferentes estruturas
 
-### Backend Deployment
+### Banco de Dados Local
+- Armazena apenas configurações e logs
+- Dados principais ficam na Sensay
+- Schema simplificado e otimizado
 
-1. **Build the application**:
-   ```bash
-   npm run build
-   ```
+## 🤝 Contribuição
 
-2. **Set production environment variables**
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
 
-3. **Start the server**:
-   ```bash
-   npm run start
-   ```
+## 📄 Licença
 
-### Frontend Deployment
-
-1. **Build the application**:
-   ```bash
-   npm run build
-   ```
-
-2. **Deploy to your hosting platform** (Vercel, Netlify, etc.)
-
-### Widget Deployment
-
-1. **Build the widget**:
-   ```bash
-   npm run build
-   ```
-
-2. **Upload `dist/chat-widget.min.js` to your CDN**
-
-3. **Update script URLs in client websites**
-
-## 📊 Database Schema
-
-### Core Models
-
-- **User** - User management
-- **Replica** - Sensay replica instances
-- **UploadSchedule** - File upload scheduling
-- **FileUpload** - File upload tracking
-- **DataConnector** - Universal data source connector
-
-### SaaS-Ready Models (Commented)
-
-- **Tenant** - Multi-tenant support
-- **Property** - Property management
-- **ApiKey** - API key management
-- **WebhookEvent** - Webhook event tracking
-
-## 🔒 Security Considerations
-
-- **API keys** stored securely in environment variables
-- **CORS** configured for production domains
-- **Input validation** on all API endpoints
-- **Rate limiting** for API requests
-- **Secure file uploads** with validation
-
-## 🧪 Testing
-
-### Backend Testing
-
-```bash
-cd backend
-npm test              # Run tests
-npm run test:watch    # Watch mode
-npm run test:coverage # Coverage report
-```
-
-### Frontend Testing
-
-```bash
-cd frontend
-npm test              # Run tests
-npm run test:watch    # Watch mode
-npm run test:coverage # Coverage report
-```
-
-## 📚 Documentation
-
-- **Backend**: [backend/README.md](backend/README.md)
-- **Frontend**: [frontend/README.md](frontend/README.md)
-- **Embed Widget**: [embed-widget/README.md](embed-widget/README.md)
-- **API Documentation**: Available at `/api/docs` when backend is running
-
-## 🤝 Contributing
-
-1. **Fork the repository**
-2. **Create a feature branch**
-3. **Make your changes**
-4. **Add tests if applicable**
-5. **Submit a pull request**
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🔗 External Resources
-
-- **Sensay API**: [https://docs.sensay.io](https://docs.sensay.io)
-- **Next.js**: [https://nextjs.org](https://nextjs.org)
-- **Fastify**: [https://fastify.io](https://fastify.io)
-- **Prisma**: [https://prisma.io](https://prisma.io)
-- **Tailwind CSS**: [https://tailwindcss.com](https://tailwindcss.com)
-
-## 📞 Support
-
-For questions or issues:
-
-1. **Check the documentation** in each component folder
-2. **Review console logs** for error details
-3. **Check environment variables** are configured correctly
-4. **Verify Sensay API** credentials and permissions
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
 ---
 
-**Project Status**: Active Development  
-**Last Updated**: September 2024  
-**Version**: 1.0.0
+**Desenvolvido para o hackathon Sensay** 🚀

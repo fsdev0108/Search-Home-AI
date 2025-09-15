@@ -1,9 +1,6 @@
 import { FastifyInstance } from 'fastify'
-import { UserController } from '../controllers/userController'
-import { authMiddleware, requireAdmin } from '../middlewares/auth'
 
 export async function authRoutes(fastify: FastifyInstance) {
-  const userController = new UserController()
 
   // Login
   fastify.post('/auth/login', {
@@ -17,11 +14,15 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
       }
     }
-  }, userController.login.bind(userController))
+  }, async (request, reply) => {
+    return reply.status(501).send({
+      success: false,
+      error: 'Authentication not implemented in simplified version'
+    })
+  })
 
   // Register (apenas admin pode criar usuários)
   fastify.post('/auth/register', {
-    preHandler: [authMiddleware, requireAdmin],
     schema: {
       body: {
         type: 'object',
@@ -38,32 +39,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     try {
       const { name, email, password, role } = request.body as any
 
-      // Verificar se o usuário já existe
-      const existingUser = await userController['userService'].getUserByEmail(email)
-      if (existingUser) {
-        return reply.status(409).send({
-          success: false,
-          error: 'User with this email already exists'
-        })
-      }
-
-      // Hash da senha
-      const bcrypt = require('bcrypt')
-      const saltRounds = 10
-      const hashedPassword = await bcrypt.hash(password, saltRounds)
-
-      // Criar usuário com senha
-      const user = await userController['userService'].createUserWithPassword(name, email, hashedPassword, role)
-
-      return reply.status(201).send({
-        success: true,
-        data: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role
-        },
-        message: 'User created successfully'
+      return reply.status(501).send({
+        success: false,
+        error: 'User registration not implemented in simplified version'
       })
     } catch (error: any) {
       request.log.error('Error creating user:', error)
@@ -75,12 +53,18 @@ export async function authRoutes(fastify: FastifyInstance) {
   })
 
   // Verificar token atual
-  fastify.get('/auth/me', {
-    preHandler: [authMiddleware]
-  }, userController.getCurrentUser.bind(userController))
+  fastify.get('/auth/me', async (request, reply) => {
+    return reply.status(501).send({
+      success: false,
+      error: 'Get current user not implemented in simplified version'
+    })
+  })
 
   // Logout (opcional, pode ser feito no frontend)
-  fastify.post('/auth/logout', {
-    preHandler: [authMiddleware]
-  }, userController.logout.bind(userController))
+  fastify.post('/auth/logout', async (request, reply) => {
+    return reply.status(501).send({
+      success: false,
+      error: 'Logout not implemented in simplified version'
+    })
+  })
 }

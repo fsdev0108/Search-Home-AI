@@ -3,9 +3,11 @@ import './Header.css'
 const Header = ({ currentTab, onTabChange, user, onLogout }) => {
     const tabs = [
         { id: 'dashboard', label: 'Dashboard' },
+        { id: 'organizations', label: 'Organizations', adminOnly: true },
         { id: 'users', label: 'Users', adminOnly: true },
         { id: 'replicas', label: 'Replicas' },
-        { id: 'files', label: 'Files' }
+        { id: 'files', label: 'Files' },
+        { id: 'settings', label: 'Settings' }
     ]
 
     const handleLogout = () => {

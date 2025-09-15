@@ -1,21 +1,26 @@
 import { FastifyInstance } from 'fastify'
 import { SensayController } from '../controllers/sensayController'
 
+const sensayController = new SensayController()
+
 export async function sensayRoutes(fastify: FastifyInstance) {
-  const sensayController = new SensayController()
+  // Integration Management
+  fastify.post('/integrations', sensayController.createIntegration.bind(sensayController))
+  fastify.get('/integrations', sensayController.getIntegrations.bind(sensayController))
 
-  // User management
-  fastify.post('/sensay/users', sensayController.createUser.bind(sensayController))
+  // HubSpot Integration
+  fastify.post('/integrations/:integrationId/hubspot/connect', sensayController.connectHubSpot.bind(sensayController))
+  fastify.post('/integrations/:integrationId/hubspot/sync', sensayController.syncHubSpotData.bind(sensayController))
+  fastify.get('/integrations/:integrationId/hubspot/status', sensayController.getHubSpotStatus.bind(sensayController))
 
-  // Replica management
-  fastify.post('/replicas', sensayController.createReplica.bind(sensayController))
-  fastify.get('/users/:userId/replicas', sensayController.getReplicasByUser.bind(sensayController))
+  // User Management (via Sensay API)
+  fastify.post('/integrations/:integrationId/users', sensayController.createUser.bind(sensayController))
+  fastify.get('/integrations/:integrationId/users', sensayController.getUsers.bind(sensayController))
 
-  // File upload
-  fastify.post('/replicas/:replicaUuid/upload', sensayController.uploadFile.bind(sensayController))
+  // Replica Management (via Sensay API)
+  fastify.post('/integrations/:integrationId/replicas', sensayController.createReplica.bind(sensayController))
+  fastify.get('/integrations/:integrationId/replicas', sensayController.getReplicas.bind(sensayController))
 
-  // Upload scheduling
-  fastify.post('/uploads/schedule', sensayController.scheduleUpload.bind(sensayController))
-  fastify.get('/uploads/schedules', sensayController.getUploadSchedules.bind(sensayController))
-  fastify.post('/uploads/process', sensayController.processScheduledUploads.bind(sensayController))
+  // Sync Logs
+  fastify.get('/integrations/:integrationId/logs', sensayController.getSyncLogs.bind(sensayController))
 }

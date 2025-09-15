@@ -3,29 +3,15 @@ import { useEffect } from 'react'
 
 export default function App({ Component, pageProps }) {
   useEffect(() => {
-    // Load our embed widget script from the external widget server
+    // Load Sensay widget script
     const script = document.createElement('script')
-    script.src = 'http://localhost:3001/chat-widget.js'
-    script.async = true
+    script.src = 'https://chat-widget.sensay.io/474108fd-5b8e-466a-bd8b-a2c66caaccaf/embed-script.js'
+    script.defer = true
     script.onload = () => {
-      console.log('Real Estate AI Widget loaded successfully from external server')
-      
-      // Initialize widget automatically (will run in demo mode without API keys)
-      if (window.RealEstateChat) {
-        window.RealEstateChat.init({
-          apiKey: 'test-api-key',
-          userId: 'test-user-id',
-          replicaUuid: 'test-replica-uuid',
-          position: 'bottom-right',
-          theme: 'auto',
-          primaryColor: '#3cacae'
-          // No API keys = demo mode
-        });
-        console.log('Widget initialized automatically');
-      }
+      console.log('Sensay widget loaded successfully')
     }
     script.onerror = () => {
-      console.error('Failed to load widget script from external server')
+      console.error('Failed to load Sensay widget script')
     }
     document.head.appendChild(script)
 

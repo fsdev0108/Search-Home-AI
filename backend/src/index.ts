@@ -6,7 +6,7 @@ import multipart from '@fastify/multipart'
 import { config } from './config'
 import { errorHandler } from './middlewares/errorHandler'
 import { registerRoutes } from './routes'
-import { Scheduler } from './utils/scheduler'
+// Scheduler removed in simplified version
 
 const fastify = Fastify({
   logger: true
@@ -36,14 +36,9 @@ async function start() {
     await fastify.listen({ port: Number(config.port), host: config.host })
     console.log(`Server running on http://${config.host}:${config.port}`)
 
-    // Start the daily scheduler
-    const scheduler = new Scheduler()
-    scheduler.startDailyScheduler()
-
     // Graceful shutdown
     process.on('SIGINT', () => {
       console.log('Shutting down gracefully...')
-      scheduler.stopScheduler()
       fastify.close(() => {
         console.log('Server closed')
         process.exit(0)
