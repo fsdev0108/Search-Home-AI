@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { buildApiUrl } from '../../config/api'
+import { authAPI } from '../../services/api'
 import './Auth.css'
 
 const Login = ({ onLogin }) => {
@@ -24,29 +24,25 @@ const Login = ({ onLogin }) => {
         setError('')
 
         try {
-            const response = await fetch(buildApiUrl('/auth/login'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            })
+            // Call real API
+            const response = await authAPI.login(formData.email, formData.password)
 
-            const data = await response.json()
+            if (response.success) {
+                // Save token and user data
+                localStorage.setItem('authToken', response.data.token)
+                localStorage.setItem('user', JSON.stringify(response.data.user))
 
-            if (data.success) {
-                // Salvar token no localStorage
-                localStorage.setItem('authToken', data.data.token)
-                localStorage.setItem('user', JSON.stringify(data.data.user))
-                onLogin(data.data.user)
+                // Call login callback
+                onLogin(response.data.user)
             } else {
-                setError(data.error || 'Login failed')
+                setError(response.error || 'Login failed')
             }
         } catch (error) {
-            setError('Network error. Please try again.')
-        } finally {
-            setLoading(false)
+            console.error('Login error:', error)
+            setError('Failed to connect to server. Please try again.')
         }
+
+        setLoading(false)
     }
 
     return (
@@ -73,7 +69,7 @@ const Login = ({ onLogin }) => {
                             value={formData.email}
                             onChange={handleInputChange}
                             required
-                            placeholder="Enter your email"
+                            placeholder="admin@herainov.com"
                             disabled={loading}
                         />
                     </div>
@@ -87,9 +83,15 @@ const Login = ({ onLogin }) => {
                             value={formData.password}
                             onChange={handleInputChange}
                             required
-                            placeholder="Enter your password"
+                            placeholder="admin123"
                             disabled={loading}
                         />
+                    </div>
+
+                    <div className="login-info">
+                        <h4>Test Credentials:</h4>
+                        <p><strong>Admin:</strong> admin@herainov.com / admin123</p>
+                        <p><strong>User:</strong> user@herainov.com / user123</p>
                     </div>
 
                     <button
@@ -102,10 +104,10 @@ const Login = ({ onLogin }) => {
                 </form>
 
                 <div className="auth-footer">
-                    <p>Default admin credentials:</p>
-                    <p><strong>Email:</strong> admin@sensay.com</p>
-                    <p><strong>Password:</strong> admin123</p>
-                    <p><small>API: {buildApiUrl('/auth/login')}</small></p>
+                    <p>Available credentials:</p>
+                    <p><strong>Admin:</strong> admin@sensay.com / admin123</p>
+                    <p><strong>User:</strong> user@sensay.com / user123</p>
+                    <p><small>Login simulado - sem API</small></p>
                 </div>
             </div>
         </div>

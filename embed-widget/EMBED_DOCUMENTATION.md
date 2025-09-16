@@ -14,7 +14,6 @@ Add this code to your HTML page (before the closing `</body>` tag):
 <script src="https://yourdomain.com/chat-widget.js"></script>
 <script>
   RealEstateChat.init({
-    apiKey: 'your_sensay_api_key',
     userId: 'your_user_id',
     replicaUuid: 'your_replica_uuid'
   });
@@ -23,11 +22,12 @@ Add this code to your HTML page (before the closing `</body>` tag):
 
 ### 2. Required Configuration
 
-You must provide these three required parameters:
+You must provide these two required parameters:
 
-- **`apiKey`**: Your Sensay organization secret key
 - **`userId`**: Your existing Sensay user ID
 - **`replicaUuid`**: Your existing Sensay replica UUID
+
+**Note:** The API Key is automatically configured on our server side.
 
 ## ⚙️ Configuration Options
 
@@ -35,7 +35,6 @@ You must provide these three required parameters:
 
 | Parameter | Type | Description | Example |
 |-----------|------|-------------|---------|
-| `apiKey` | string | Your Sensay API key | `'sk_1234567890abcdef'` |
 | `userId` | string | Your Sensay user ID | `'user_12345'` |
 | `replicaUuid` | string | Your Sensay replica UUID | `'uuid-here'` |
 

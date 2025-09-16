@@ -6,6 +6,7 @@ import multipart from '@fastify/multipart'
 import { config } from './config'
 import { errorHandler } from './middlewares/errorHandler'
 import { registerRoutes } from './routes'
+import { InitializationService } from './services/initializationService'
 // Scheduler removed in simplified version
 
 const fastify = Fastify({
@@ -32,6 +33,9 @@ fastify.get('/', async (request, reply) => {
 
 async function start() {
   try {
+    // Initialize default integration
+    await InitializationService.initialize()
+    
     await registerRoutes(fastify)
     await fastify.listen({ port: Number(config.port), host: config.host })
     console.log(`Server running on http://${config.host}:${config.port}`)

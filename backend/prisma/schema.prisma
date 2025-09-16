@@ -23,8 +23,23 @@ model IntegrationSettings {
 
   hubspotSettings HubSpotSettings?
   syncLogs       SyncLog[]
+  users          User[]
 
   @@map("integration_settings")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  integrationId  String
+  sensayUserId   String   @unique // ID from Sensay API
+  name           String
+  email          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  integration    IntegrationSettings @relation(fields: [integrationId], references: [id])
+
+  @@map("users")
 }
 
 // Removed models that are now managed by Sensay API

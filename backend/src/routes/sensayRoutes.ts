@@ -21,6 +21,10 @@ export async function sensayRoutes(fastify: FastifyInstance) {
   fastify.post('/integrations/:integrationId/replicas', sensayController.createReplica.bind(sensayController))
   fastify.get('/integrations/:integrationId/replicas', sensayController.getReplicas.bind(sensayController))
 
+  // Knowledge Base Management (via Sensay API)
+  fastify.get('/replicas/:replicaUUID/knowledge-base', sensayController.getKnowledgeBase.bind(sensayController))
+  fastify.get('/replicas/:replicaUUID/knowledge-base/:knowledgeBaseID', sensayController.getKnowledgeBaseEntry.bind(sensayController))
+
   // Sync Logs
   fastify.get('/integrations/:integrationId/logs', sensayController.getSyncLogs.bind(sensayController))
 }

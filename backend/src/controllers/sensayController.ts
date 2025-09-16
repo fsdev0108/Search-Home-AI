@@ -76,12 +76,21 @@ export class SensayController {
   async syncHubSpotData(request: FastifyRequest, reply: FastifyReply) {
     try {
       const { integrationId } = request.params as { integrationId: string }
+      const { replicaId } = request.body as { replicaId?: string }
 
-      console.log('🔄 Starting HubSpot sync for integration:', integrationId)
+      console.log('Starting HubSpot sync for integration:', integrationId)
+      console.log('Target replica:', replicaId)
 
-      await prisma.hubSpotSettings.update({
+      await prisma.hubSpotSettings.upsert({
         where: { integrationId },
-        data: { syncStatus: 'syncing' }
+        update: { syncStatus: 'syncing' },
+        create: {
+          integrationId,
+          apiKey: '', 
+          isConnected: false,
+          syncStatus: 'syncing',
+          propertiesCount: 0
+        }
       })
 
       const integration = await prisma.integrationSettings.findUnique({
@@ -97,39 +106,107 @@ export class SensayController {
       const csvContent = fs.readFileSync(csvPath, 'utf8')
 
       const sensayService = new SensayApiService(integration.organizationSecret)
-      const replicas = await sensayService.getReplicas()
-
       let uploadResults = []
 
-      for (const replica of replicas) {
+      if (replicaId) {
+        // Send to specific replica only
         try {
+          // Validate UUID format
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          if (!uuidRegex.test(replicaId)) {
+            throw new Error(`Invalid replica UUID format: "${replicaId}"`)
+          }
+
+          // Get replica info for the title
+          const replicas = await sensayService.getReplicas()
+          const targetReplica = replicas.find(r => r.uuid === replicaId)
+          const replicaName = targetReplica?.name || 'Unknown Replica'
+
           await sensayService.uploadCSVToKnowledgeBase(
-            replica.id,
+            replicaId,
             csvContent,
-            `HubSpot Properties - ${replica.name}`
+            `HubSpot Properties - ${replicaName}`
           )
 
           uploadResults.push({
-            replicaId: replica.id,
-            replicaName: replica.name,
+            replicaId: replicaId,
+            replicaName: replicaName,
             status: 'success'
           })
         } catch (uploadError: any) {
           uploadResults.push({
-            replicaId: replica.id,
-            replicaName: replica.name,
+            replicaId: replicaId,
+            replicaName: 'Unknown',
             status: 'error',
             error: uploadError.message
           })
         }
+      } else {
+        // Fallback: send to all replicas (for backward compatibility)
+        const replicas = await sensayService.getReplicas()
+        console.log('No specific replica provided, sending to all replicas:', replicas.length)
+
+        for (const replica of replicas) {
+          try {
+            // Check if UUID exists and is not empty
+            if (!replica.uuid || replica.uuid.trim() === '') {
+              uploadResults.push({
+                replicaId: replica.uuid || 'empty',
+                replicaName: replica.name,
+                status: 'error',
+                error: 'Empty or missing replica UUID'
+              })
+              continue
+            }
+            
+            // Validate UUID format
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+            if (!uuidRegex.test(replica.uuid)) {
+              uploadResults.push({
+                replicaId: replica.uuid,
+                replicaName: replica.name,
+                status: 'error',
+                error: `Invalid UUID format: "${replica.uuid}"`
+              })
+              continue
+            }
+            
+            await sensayService.uploadCSVToKnowledgeBase(
+              replica.uuid,
+              csvContent,
+              `HubSpot Properties - ${replica.name}`
+            )
+
+            uploadResults.push({
+              replicaId: replica.uuid,
+              replicaName: replica.name,
+              status: 'success'
+            })
+          } catch (uploadError: any) {
+            uploadResults.push({
+              replicaId: replica.uuid,
+              replicaName: replica.name,
+              status: 'error',
+              error: uploadError.message
+            })
+          }
+        }
       }
 
-      await prisma.hubSpotSettings.update({
+      await prisma.hubSpotSettings.upsert({
         where: { integrationId },
-        data: {
+        update: {
           lastSync: new Date(),
           propertiesCount: properties.length,
           syncStatus: 'success'
+        },
+        create: {
+          integrationId,
+          apiKey: '', // Will be set when connecting
+          isConnected: false,
+          syncStatus: 'success',
+          lastSync: new Date(),
+          propertiesCount: properties.length
         }
       })
 
@@ -144,14 +221,22 @@ export class SensayController {
       })
 
     } catch (error: any) {
-      console.error('❌ Error syncing HubSpot data:', error)
+      console.error('Error syncing HubSpot data:', error)
       
       const { integrationId } = request.params as { integrationId: string }
-      await prisma.hubSpotSettings.update({
+      await prisma.hubSpotSettings.upsert({
         where: { integrationId },
-        data: {
+        update: {
           syncStatus: 'error',
           errorMessage: error.message
+        },
+        create: {
+          integrationId,
+          apiKey: '', // Will be set when connecting
+          isConnected: false,
+          syncStatus: 'error',
+          errorMessage: error.message,
+          propertiesCount: 0
         }
       })
 
@@ -262,10 +347,23 @@ export class SensayController {
       const sensayService = new SensayApiService(integration.organizationSecret)
       const sensayUser = await sensayService.createUser(userData)
 
+      // Save user to local database
+      const localUser = await prisma.user.create({
+        data: {
+          integrationId: integrationId,
+          sensayUserId: sensayUser.id,
+          name: sensayUser.name,
+          email: sensayUser.email
+        }
+      })
+
       return reply.status(201).send({
         success: true,
-        data: sensayUser,
-        message: 'User created successfully in Sensay'
+        data: {
+          ...sensayUser,
+          localId: localUser.id
+        },
+        message: 'User created successfully in Sensay and saved locally'
       })
     } catch (error: any) {
       console.error('Error creating user:', error)
@@ -291,12 +389,40 @@ export class SensayController {
         })
       }
 
+      // Get users from local database
+      const localUsers = await prisma.user.findMany({
+        where: { integrationId: integrationId }
+      })
+
+      // Fetch details from Sensay API for each user
       const sensayService = new SensayApiService(integration.organizationSecret)
-      const currentUser = await sensayService.getCurrentUser()
+      const usersWithDetails = await Promise.all(
+        localUsers.map(async (localUser) => {
+          try {
+            const sensayUser = await sensayService.getUser(localUser.sensayUserId)
+            return {
+              ...sensayUser,
+              localId: localUser.id,
+              createdAt: localUser.createdAt
+            }
+          } catch (error) {
+            console.error(`Error fetching user ${localUser.sensayUserId} from Sensay:`, error)
+            // Return local data if Sensay fetch fails
+            return {
+              id: localUser.sensayUserId,
+              name: localUser.name,
+              email: localUser.email,
+              localId: localUser.id,
+              createdAt: localUser.createdAt,
+              error: 'Failed to fetch from Sensay'
+            }
+          }
+        })
+      )
 
       return reply.send({
         success: true,
-        data: [currentUser],
+        data: usersWithDetails,
         message: 'Users retrieved successfully'
       })
     } catch (error: any) {
@@ -393,6 +519,80 @@ export class SensayController {
       return reply.status(500).send({
         success: false,
         error: 'Failed to retrieve sync logs'
+      })
+    }
+  }
+
+  async getKnowledgeBase(request: any, reply: any) {
+    try {
+      const { replicaUUID } = request.params
+
+      if (!replicaUUID) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Replica UUID is required'
+        })
+      }
+
+      // Get organization secret from environment
+      const organizationSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      if (!organizationSecret) {
+        return reply.status(500).send({
+          success: false,
+          error: 'Organization secret not configured'
+        })
+      }
+
+      const sensayService = new SensayApiService(organizationSecret)
+      const knowledgeBase = await sensayService.getKnowledgeBaseEntries(replicaUUID)
+
+      return reply.send({
+        success: true,
+        data: knowledgeBase,
+        message: 'Knowledge base retrieved successfully'
+      })
+    } catch (error: any) {
+      console.error('Error getting knowledge base:', error)
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to retrieve knowledge base'
+      })
+    }
+  }
+
+  async getKnowledgeBaseEntry(request: any, reply: any) {
+    try {
+      const { replicaUUID, knowledgeBaseID } = request.params
+
+      if (!replicaUUID || !knowledgeBaseID) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Replica UUID and Knowledge Base ID are required'
+        })
+      }
+
+      // Get organization secret from environment
+      const organizationSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      if (!organizationSecret) {
+        return reply.status(500).send({
+          success: false,
+          error: 'Organization secret not configured'
+        })
+      }
+
+      const sensayService = new SensayApiService(organizationSecret)
+      const entry = await sensayService.getKnowledgeBaseEntry(replicaUUID, knowledgeBaseID)
+
+      return reply.send({
+        success: true,
+        data: entry,
+        message: 'Knowledge base entry retrieved successfully'
+      })
+    } catch (error: any) {
+      console.error('Error getting knowledge base entry:', error)
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to retrieve knowledge base entry'
       })
     }
   }

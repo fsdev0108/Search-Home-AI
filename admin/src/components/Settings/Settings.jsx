@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { integrationsAPI, hubspotAPI, replicasAPI } from '../../services/api'
 import './Settings.css'
 
 const Settings = () => {
@@ -12,20 +13,33 @@ const Settings = () => {
     const [propertiesCount, setPropertiesCount] = useState(0)
     const [organizationSecret, setOrganizationSecret] = useState('')
     const [organizationName, setOrganizationName] = useState('')
+    const [currentOrganization, setCurrentOrganization] = useState(null)
+    const [replicas, setReplicas] = useState([])
+    const [selectedReplicaId, setSelectedReplicaId] = useState('')
+
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+    const isAdmin = currentUser.role === 'admin'
 
     useEffect(() => {
         fetchIntegrations()
+        loadCurrentOrganization()
     }, [])
+
+    useEffect(() => {
+        if (currentIntegration) {
+            loadReplicas()
+        }
+    }, [currentIntegration])
 
     const fetchIntegrations = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/v1/integrations')
-            const data = await response.json()
-            if (data.success) {
-                setIntegrations(data.data)
-                if (data.data.length > 0) {
-                    setCurrentIntegration(data.data[0])
-                    loadHubSpotSettings(data.data[0].id)
+            const response = await integrationsAPI.getAll()
+            if (response.success) {
+                setIntegrations(response.data)
+                if (response.data.length > 0) {
+                    setCurrentIntegration(response.data[0])
+                    loadHubSpotSettings(response.data[0].id)
                 }
             }
         } catch (error) {
@@ -35,12 +49,11 @@ const Settings = () => {
 
     const loadHubSpotSettings = async (integrationId) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/v1/integrations/${integrationId}/hubspot/status`)
-            const data = await response.json()
-            if (data.success) {
-                setIsConnected(data.data.connected)
-                setLastSync(data.data.lastSync ? new Date(data.data.lastSync) : null)
-                setPropertiesCount(data.data.propertiesCount)
+            const response = await hubspotAPI.getStatus(integrationId)
+            if (response.success) {
+                setIsConnected(response.data.connected)
+                setLastSync(response.data.lastSync ? new Date(response.data.lastSync) : null)
+                setPropertiesCount(response.data.propertiesCount)
             }
         } catch (error) {
             console.error('Error loading HubSpot settings:', error)
@@ -58,6 +71,56 @@ const Settings = () => {
             })
         } catch (error) {
             console.error('Error loading organization:', error)
+        }
+    }
+
+    const loadReplicas = async () => {
+        try {
+            const response = await replicasAPI.getAll(currentIntegration.id)
+            if (response.success) {
+                let allReplicas = response.data || []
+
+                // Filter replicas based on user role
+                if (!isAdmin) {
+                    // For regular users, only show replicas they own
+                    const currentUserId = currentUser.id || currentUser.sensayUserId
+                    allReplicas = allReplicas.filter(replica => replica.ownerID === currentUserId)
+                }
+
+                setReplicas(allReplicas)
+            }
+        } catch (error) {
+            console.error('Error loading replicas:', error)
+        }
+    }
+
+    const createIntegration = async () => {
+        if (!organizationName.trim() || !organizationSecret.trim()) {
+            alert('Please fill in all required fields')
+            return
+        }
+
+        try {
+            const integrationData = {
+                organizationName: organizationName.trim(),
+                organizationSecret: organizationSecret.trim()
+            }
+
+            const response = await integrationsAPI.create(integrationData)
+
+            if (response.success) {
+                alert('Integration created successfully!')
+                // Refresh the integrations list
+                await fetchIntegrations()
+                // Clear the form
+                setOrganizationName('')
+                setOrganizationSecret('')
+            } else {
+                throw new Error('Failed to create integration')
+            }
+        } catch (error) {
+            console.error('Error creating integration:', error)
+            alert('Failed to create integration. Please try again.')
         }
     }
 
@@ -105,21 +168,20 @@ const Settings = () => {
             return
         }
 
+        if (!selectedReplicaId) {
+            alert('Please select a replica to sync the data to')
+            return
+        }
+
         setConnectionStatus('Syncing data and generating CSV...')
 
         try {
-            const response = await fetch(`http://localhost:3000/api/v1/integrations/${currentIntegration.id}/hubspot/sync`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    apiKey: hubspotApiKey
-                })
+            const result = await hubspotAPI.sync(currentIntegration.id, {
+                apiKey: hubspotApiKey,
+                replicaId: selectedReplicaId
             })
 
-            if (response.ok) {
-                const result = await response.json()
+            if (result.success) {
                 setConnectionStatus('Data synced successfully! CSV generated and AI agent updated.')
                 setLastSync(new Date())
                 setPropertiesCount(result.data.propertiesCount || 0)
@@ -212,8 +274,8 @@ const Settings = () => {
                     </div>
                 )}
 
-                {/* HubSpot Integration Section */}
-                {currentIntegration && (
+                {/* HubSpot Integration Section - Only for regular users */}
+                {!isAdmin && currentIntegration && (
                     <div className="integration-section">
                         <div className="integration-header">
                             <h3>HubSpot Integration</h3>
@@ -225,6 +287,26 @@ const Settings = () => {
                         <div className="integration-content">
                             {!isConnected ? (
                                 <div className="connection-form">
+                                    <div className="form-group">
+                                        <label htmlFor="replicaSelect">Select Replica for Integration</label>
+                                        <select
+                                            id="replicaSelect"
+                                            value={selectedReplicaId}
+                                            onChange={(e) => setSelectedReplicaId(e.target.value)}
+                                            disabled={isConnecting}
+                                        >
+                                            <option value="">Choose a replica...</option>
+                                            {replicas.map(replica => (
+                                                <option key={replica.uuid} value={replica.uuid}>
+                                                    {replica.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <small>
+                                            Select which replica will receive the HubSpot property data
+                                        </small>
+                                    </div>
+
                                     <div className="form-group">
                                         <label htmlFor="apiKey">HubSpot API Key</label>
                                         <input
@@ -243,7 +325,7 @@ const Settings = () => {
                                     <button
                                         className="connect-btn"
                                         onClick={handleConnectHubSpot}
-                                        disabled={isConnecting || !hubspotApiKey.trim()}
+                                        disabled={isConnecting || !hubspotApiKey.trim() || !selectedReplicaId}
                                     >
                                         {isConnecting ? 'Connecting...' : 'Connect to HubSpot'}
                                     </button>
@@ -264,6 +346,10 @@ const Settings = () => {
                                         <div className="info-item">
                                             <label>Last Sync</label>
                                             <span>{lastSync ? lastSync.toLocaleString() : 'Never'}</span>
+                                        </div>
+                                        <div className="info-item">
+                                            <label>Target Replica</label>
+                                            <span>{replicas.find(r => r.uuid === selectedReplicaId)?.name || 'Unknown'}</span>
                                         </div>
                                         <div className="info-item">
                                             <label>AI Agent Status</label>

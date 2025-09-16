@@ -1,156 +1,217 @@
-import { useEffect } from 'react';
-import Head from 'next/head';
+import { useState, useEffect } from "react";
+import { Geist, Geist_Mono } from "next/font/google";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export default function TestWidget() {
-  useEffect(() => {
-    // Simulate client embedding our widget
-    // This is exactly what the client will do
-    
-    // Step 1: Load the widget script from separate port (simulating different domain)
-    const script = document.createElement('script');
-    script.src = 'http://localhost:3001/chat-widget-simple.js'; // Simplified widget for testing
-    script.async = true;
-    script.onload = () => {
-      console.log('Simplified widget loaded from separate port (simulating external domain)');
-      
-      // Step 2: Initialize the widget (client configuration)
-      if (window.RealEstateChat) {
-        window.RealEstateChat.init({
-          apiKey: 'test-api-key',
-          userId: 'test-user-id',
-          replicaUuid: 'test-replica-uuid',
-          position: 'bottom-right',
-          theme: 'auto',
-          primaryColor: '#3cacae'
-        });
-        
-        console.log('Widget initialized with client config');
-      }
-    };
-    
-    script.onerror = () => {
-      console.error('Failed to load widget from separate port');
-    };
-    
-    document.head.appendChild(script);
-
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-    };
-  }, []);
-
-  const openWidget = () => {
-    if (window.RealEstateChat && window.RealEstateChat.open) {
-      window.RealEstateChat.open();
-    } else {
-      console.log('Widget not ready yet');
-    }
-  };
-
-  return (
-    <>
-      <Head>
-        <title>Test Widget Embed - Real Estate AI</title>
-      </Head>
-      
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
-            🧪 Test Widget Embed (Cross-Origin)
-          </h1>
-          
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Client Integration Test</h2>
-            <p className="text-gray-600 mb-4">
-              This page simulates how a client would embed our widget from a different domain.
-            </p>
-            
-            <div className="bg-blue-100 p-4 rounded-lg mb-4">
-              <h3 className="font-semibold mb-2">Widget Server:</h3>
-              <code className="text-sm text-blue-700">http://localhost:3001/chat-widget-simple.js</code>
-              <p className="text-xs text-blue-600 mt-1">
-                Simplified widget for testing interface (no Sensay API required)
-              </p>
-            </div>
-            
-            <div className="bg-gray-100 p-4 rounded-lg mb-4">
-              <h3 className="font-semibold mb-2">Client's Embed Code:</h3>
-              <pre className="text-sm text-gray-700 overflow-x-auto">
-{`<!-- Step 1: Load the widget script from separate domain -->
-<script src="http://localhost:3001/chat-widget-simple.js" async></script>
-
-<!-- Step 2: Initialize the widget -->
-<script>
-  window.RealEstateChat.init({
-    apiKey: 'client-api-key-here',
-    userId: 'client-user-id', 
-    replicaUuid: 'client-replica-uuid',
+  const [widgetLoaded, setWidgetLoaded] = useState(false);
+  const [widgetConfig, setWidgetConfig] = useState({
+    userId: 'test-user-123',
+    replicaUuid: '9c9ffb4c-13a2-4424-96ea-a600320ba6a3',
     position: 'bottom-right',
     theme: 'auto',
     primaryColor: '#3cacae'
   });
-</script>`}
-              </pre>
-            </div>
-            
-            <button
-              onClick={openWidget}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              🚀 Test Widget (Client Button)
-            </button>
-          </div>
-          
+
+  useEffect(() => {
+    // Load the widget script
+    const script = document.createElement('script');
+    script.src = '/widget/chat-widget.js';
+    script.onload = () => {
+      console.log('Widget script loaded');
+      setWidgetLoaded(true);
+    };
+    script.onerror = () => {
+      console.error('Failed to load widget script');
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
+
+  const initializeWidget = () => {
+    if (window.RealEstateChat && window.RealEstateChat.init) {
+      window.RealEstateChat.init(widgetConfig);
+      console.log('Widget initialized with config:', widgetConfig);
+    } else {
+      console.error('RealEstateChat not available');
+    }
+  };
+
+  const toggleWidget = () => {
+    if (window.RealEstateChat && window.RealEstateChat.toggle) {
+      window.RealEstateChat.toggle();
+    } else {
+      console.error('RealEstateChat not available');
+    }
+  };
+
+  const handleConfigChange = (key, value) => {
+    setWidgetConfig(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  return (
+    <div className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-gray-50`}>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+            Widget Test Page
+          </h1>
+
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">What We're Testing:</h2>
-            <ul className="list-disc list-inside text-gray-600 space-y-2">
-              <li>Widget loading from separate port (simulating external domain)</li>
-              <li>Cross-origin requests and CORS handling</li>
-              <li>Widget interface and functionality</li>
-              <li>Chat simulation (no real API calls)</li>
-              <li>Widget opening/closing functionality</li>
-              <li>Message handling and display</li>
-            </ul>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              Widget Configuration
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  API Key
+                </label>
+                <input
+                  type="text"
+                  value={widgetConfig.apiKey}
+                  onChange={(e) => handleConfigChange('apiKey', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  User ID
+                </label>
+                <input
+                  type="text"
+                  value={widgetConfig.userId}
+                  onChange={(e) => handleConfigChange('userId', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Replica UUID
+                </label>
+                <input
+                  type="text"
+                  value={widgetConfig.replicaUuid}
+                  onChange={(e) => handleConfigChange('replicaUuid', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Position
+                </label>
+                <select
+                  value={widgetConfig.position}
+                  onChange={(e) => handleConfigChange('position', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="bottom-right">Bottom Right</option>
+                  <option value="bottom-left">Bottom Left</option>
+                  <option value="top-right">Top Right</option>
+                  <option value="top-left">Top Left</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Theme
+                </label>
+                <select
+                  value={widgetConfig.theme}
+                  onChange={(e) => handleConfigChange('theme', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="auto">Auto</option>
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Primary Color
+                </label>
+                <input
+                  type="color"
+                  value={widgetConfig.primaryColor}
+                  onChange={(e) => handleConfigChange('primaryColor', e.target.value)}
+                  className="w-full h-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={initializeWidget}
+                disabled={!widgetLoaded}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {widgetLoaded ? 'Initialize Widget' : 'Loading Widget...'}
+              </button>
+              
+              <button
+                onClick={toggleWidget}
+                disabled={!widgetLoaded}
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Toggle Widget
+              </button>
+            </div>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Setup Instructions:</h2>
-            <div className="space-y-3">
-              <div className="bg-yellow-100 p-3 rounded-lg">
-                <h3 className="font-semibold text-yellow-800">1. Start Widget Server:</h3>
-                <code className="text-sm text-yellow-700 block mt-1">
-                  cd embed-widget && node server.js
-                </code>
-                <p className="text-xs text-yellow-600 mt-1">
-                  Server will run on http://localhost:3001
-                </p>
-              </div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              Test Content
+            </h2>
+            
+            <div className="prose max-w-none">
+              <p className="text-gray-600 mb-4">
+                This is a test page for the Real Estate AI Chat Widget. Use the configuration above to test different settings.
+              </p>
               
-              <div className="bg-green-100 p-3 rounded-lg">
-                <h3 className="font-semibold text-green-800">2. Start Frontend:</h3>
-                <code className="text-sm text-green-700 block mt-1">
-                  cd frontend && npm run dev
-                </code>
-                <p className="text-xs text-green-600 mt-1">
-                  Frontend will run on http://localhost:3000
-                </p>
-              </div>
-              
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <h3 className="font-semibold text-blue-800">3. Test Widget Embed:</h3>
-                <code className="text-sm text-blue-700 block mt-1">
-                  http://localhost:3000/test-widget
-                </code>
-                <p className="text-xs text-blue-600 mt-1">
-                  This simulates client integration
-                </p>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                How to test:
+              </h3>
+              <ol className="list-decimal list-inside text-gray-600 space-y-2">
+                <li>Configure the widget settings above</li>
+                <li>Click "Initialize Widget" to start the widget</li>
+                <li>Click "Toggle Widget" to open/close the chat</li>
+                <li>Test the chat functionality</li>
+              </ol>
+
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 mt-6">
+                Widget Status:
+              </h3>
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${widgetLoaded ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className="text-gray-600">
+                  {widgetLoaded ? 'Widget script loaded' : 'Widget script loading...'}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -24,7 +24,7 @@
     position: 'bottom-right',
     theme: 'auto',
     primaryColor: '#3cacae',
-    apiKey: '',
+    apiKey: '{{SENSAY_API_KEY}}', 
     userId: '',
     replicaUuid: '',
     apiVersion: '2025-03-25'

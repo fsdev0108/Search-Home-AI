@@ -37,6 +37,24 @@ function minifyCode(code) {
     .trim();
 }
 
+// Replace API key with environment variable
+function replaceApiKey(code) {
+  const apiKey = process.env.SENSAY_API_KEY;
+  
+  if (!apiKey) {
+    console.error('❌ SENSAY_API_KEY environment variable is required!');
+    console.error('   Please set SENSAY_API_KEY=your_api_key_here');
+    process.exit(1);
+  }
+  
+  console.log(`🔑 Using API Key: ${apiKey.substring(0, 10)}...`);
+  
+  return code.replace(
+    /{{SENSAY_API_KEY}}/g, 
+    apiKey
+  );
+}
+
 // Add build information
 function addBuildInfo(code) {
   const buildInfo = `
@@ -64,8 +82,11 @@ function build() {
     let code = fs.readFileSync(inputPath, 'utf8');
     console.log(`📖 Read ${CONFIG.inputFile} (${code.length} characters)`);
     
+    // Replace API key with environment variable
+    const codeWithApiKey = replaceApiKey(code);
+    
     // Minify code
-    const minified = minifyCode(code);
+    const minified = minifyCode(codeWithApiKey);
     console.log(`✂️  Minified to ${minified.length} characters (${Math.round((1 - minified.length / code.length) * 100)}% reduction)`);
     
     // Add build information
@@ -122,4 +143,4 @@ if (require.main === module) {
   build();
 }
 
-module.exports = { build, minifyCode, addBuildInfo };
+module.exports = { build, minifyCode, addBuildInfo, replaceApiKey };

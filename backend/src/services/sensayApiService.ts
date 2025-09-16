@@ -11,26 +11,34 @@ export interface SensayUser {
 }
 
 export interface SensayReplica {
-  id: string
+  uuid: string
   name: string
-  purpose: string
+  slug: string
+  profile_image: string
+  short_description: string
+  introduction: string
+  tags: string[]
+  created_at: string
+  owner_uuid: string
+  voice_enabled: boolean
+  video_enabled: boolean
+  chat_history_count: number
+  system_message: string
+  private: boolean
+  telegram_integration?: any
+  discord_integration?: any
+  profileImage: string
   shortDescription: string
   greeting: string
-  type: 'character' | 'assistant'
   ownerID: string
-  private: boolean
-  slug: string
-  tags: string[]
-  profileImage?: string
+  type: 'character' | 'assistant'
+  whitelistEmails: string[]
   suggestedQuestions: string[]
   llm: {
     model: string
-    memoryMode: string
     systemMessage: string
     tools: string[]
   }
-  voicePreviewText: string
-  isEveryConversationAccessibleBySupport: boolean
 }
 
 export interface CreateUserRequest {
@@ -68,8 +76,8 @@ export interface CreateReplicaRequest {
 
 export interface KnowledgeBaseUploadRequest {
   title: string
-  text: string
-  filename: string
+  text?: string
+  filename?: string
   url?: string
   autoRefresh?: boolean
 }
@@ -121,6 +129,16 @@ export class SensayApiService {
     }
   }
 
+  async getAllUsers(): Promise<SensayUser[]> {
+    try {
+      const response = await this.api.get('/users')
+      return response.data.items || response.data || []
+    } catch (error: any) {
+      console.error('Error getting all users from Sensay:', error.response?.data || error.message)
+      throw new Error(`Failed to get users: ${error.response?.data?.message || error.message}`)
+    }
+  }
+
   async updateUser(userId: string, updates: Partial<CreateUserRequest>): Promise<SensayUser> {
     try {
       const response = await this.api.put(`/users/${userId}`, updates)
@@ -143,7 +161,13 @@ export class SensayApiService {
   // Replica Management
   async createReplica(replicaData: CreateReplicaRequest): Promise<SensayReplica> {
     try {
-      const response = await this.api.post('/replicas', replicaData)
+      // Add default LLM configuration if not provided
+      const replicaPayload = {
+        ...replicaData,
+        llm: replicaData.llm || {}
+      }
+      
+      const response = await this.api.post('/replicas', replicaPayload)
       return response.data
     } catch (error: any) {
       console.error('Error creating replica in Sensay:', error.response?.data || error.message)
@@ -202,12 +226,41 @@ export class SensayApiService {
   }
 
   async uploadCSVToKnowledgeBase(replicaId: string, csvContent: string, title: string = 'Property Data'): Promise<any> {
-    return this.uploadToKnowledgeBase(replicaId, {
-      title: title,
-      text: csvContent,
-      filename: 'properties.csv',
-      autoRefresh: false
-    })
+    try {
+      // Step 1: POST to knowledge-base with filename to get signedURL
+      const filename = `${title.replace(/[^a-zA-Z0-9]/g, '_')}.csv`
+      const uploadRequest = await this.uploadToKnowledgeBase(replicaId, {
+        title: title,
+        filename: filename,
+        autoRefresh: false
+      })
+
+      // Step 2: Upload the actual CSV content to the signedURL
+      if (uploadRequest.success && uploadRequest.results && uploadRequest.results.length > 0) {
+        const result = uploadRequest.results[0]
+        if (result.signedURL) {
+          // Create a separate axios instance for external URL upload
+          const uploadAxios = axios.create()
+          
+          // Upload CSV content to signedURL using PUT
+          const uploadResponse = await uploadAxios.put(result.signedURL, csvContent, {
+            headers: {
+              'Content-Type': 'text/csv'
+            }
+          })
+          
+          return {
+            ...uploadRequest,
+            uploadResponse: uploadResponse.data
+          }
+        }
+      }
+      
+      return uploadRequest
+    } catch (error: any) {
+      console.error('Error uploading CSV to knowledge base:', error.response?.data || error.message)
+      throw new Error(`Failed to upload CSV to knowledge base: ${error.response?.data?.message || error.message}`)
+    }
   }
 
   async getKnowledgeBaseEntries(replicaId: string): Promise<any[]> {
@@ -217,6 +270,16 @@ export class SensayApiService {
     } catch (error: any) {
       console.error('Error getting knowledge base entries:', error.response?.data || error.message)
       throw new Error(`Failed to get knowledge base entries: ${error.response?.data?.message || error.message}`)
+    }
+  }
+
+  async getKnowledgeBaseEntry(replicaId: string, entryId: string): Promise<any> {
+    try {
+      const response = await this.api.get(`/replicas/${replicaId}/knowledge-base/${entryId}`)
+      return response.data
+    } catch (error: any) {
+      console.error('Error getting knowledge base entry:', error.response?.data || error.message)
+      throw new Error(`Failed to get knowledge base entry: ${error.response?.data?.message || error.message}`)
     }
   }
 
@@ -258,7 +321,8 @@ export class SensayApiService {
   // Utility methods
   async testConnection(): Promise<boolean> {
     try {
-      await this.getCurrentUser()
+      // Test connection by trying to get replicas (organization-level endpoint)
+      await this.getReplicas()
       return true
     } catch (error) {
       console.error('Sensay API connection test failed:', error)
@@ -278,6 +342,16 @@ export class SensayApiService {
     } catch (error: any) {
       console.error('Error getting organization info:', error.response?.data || error.message)
       throw new Error(`Failed to get organization info: ${error.response?.data?.message || error.message}`)
+    }
+  }
+
+  async getKnowledgeBase(replicaUUID: string): Promise<any> {
+    try {
+      const response = await this.api.get(`/replicas/${replicaUUID}/knowledge-base`)
+      return response.data
+    } catch (error: any) {
+      console.error('Error getting knowledge base:', error.response?.data || error.message)
+      throw new Error(`Failed to get knowledge base: ${error.response?.data?.message || error.message}`)
     }
   }
 }

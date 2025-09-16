@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { replicasAPI, integrationsAPI } from '../../services/api'
 import './Files.css'
 
 const Files = () => {
@@ -40,27 +41,28 @@ const Files = () => {
 
   const loadReplicas = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/v1/replicas', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
-      })
-      if (response.ok) {
-        const data = await response.json()
-        const allReplicas = data.data || []
+      // Get integration first
+      const integrationsResponse = await integrationsAPI.getAll()
+      if (!integrationsResponse || !integrationsResponse.data || integrationsResponse.data.length === 0) {
+        console.error('No integration found')
+        return
+      }
 
-        // If user is admin, show all replicas. If not, show only user's replicas
-        if (user && user.role === 'admin') {
-          setReplicas(allReplicas)
-        } else {
-          // Filter replicas for current user
-          const userReplicas = allReplicas.filter(replica => replica.ownerID === user?.id)
-          setReplicas(userReplicas)
+      const integration = integrationsResponse.data[0]
+      const replicasResponse = await replicasAPI.getAll(integration.id)
+      const allReplicas = replicasResponse.data || []
 
-          // Auto-select the user's replica if they have only one
-          if (userReplicas.length === 1) {
-            setSelectedReplica(userReplicas[0].sensayId)
-          }
+      // If user is admin, show all replicas. If not, show only user's replicas
+      if (user && user.role === 'admin') {
+        setReplicas(allReplicas)
+      } else {
+        // Filter replicas for current user
+        const userReplicas = allReplicas.filter(replica => replica.ownerID === user?.id)
+        setReplicas(userReplicas)
+
+        // Auto-select the user's replica if they have only one
+        if (userReplicas.length === 1) {
+          setSelectedReplica(userReplicas[0].uuid)
         }
       }
     } catch (error) {
@@ -91,10 +93,12 @@ const Files = () => {
     }
 
     // For non-admin users, use their auto-selected replica
-    const replicaToUse = user?.role === 'admin' ? selectedReplica : (replicas[0]?.sensayId || selectedReplica)
+    const replicaToUse = user?.role === 'admin' ? selectedReplica : (replicas[0]?.uuid || selectedReplica)
 
-    // Use a default replica ID if none is available
-    const finalReplicaToUse = replicaToUse || 'default-replica-id'
+    if (!replicaToUse) {
+      alert('Please select a replica')
+      return
+    }
 
     setUploading(true)
 
@@ -102,7 +106,15 @@ const Files = () => {
       const formData = new FormData()
       formData.append('file', selectedFile)
 
-      const response = await fetch(`http://localhost:3001/api/v1/replicas/${finalReplicaToUse}/upload`, {
+      // Get integration first
+      const integrationsResponse = await integrationsAPI.getAll()
+      if (!integrationsResponse || !integrationsResponse.data || integrationsResponse.data.length === 0) {
+        alert('No integration found')
+        return
+      }
+
+      const integration = integrationsResponse.data[0]
+      const response = await fetch(`http://localhost:3000/api/v1/integrations/${integration.id}/replicas/${replicaToUse}/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
@@ -126,7 +138,7 @@ const Files = () => {
           id: `file_${Date.now()}`,
           filename: selectedFile.name,
           userId: user?.id || 'current_user',
-          replicaUuid: finalReplicaToUse,
+          replicaUuid: replicaToUse,
           size: selectedFile.size,
           uploadedAt: new Date().toISOString()
         }
@@ -148,7 +160,7 @@ const Files = () => {
         id: `file_${Date.now()}`,
         filename: selectedFile.name,
         userId: user?.id || 'current_user',
-        replicaUuid: finalReplicaToUse,
+        replicaUuid: replicaToUse,
         size: selectedFile.size,
         uploadedAt: new Date().toISOString()
       }
@@ -173,7 +185,7 @@ const Files = () => {
 
       // Try to delete from backend if it's a real file
       if (!fileId.startsWith('file_')) {
-        const response = await fetch(`http://localhost:3001/api/v1/files/${fileId}`, {
+        const response = await fetch(`http://localhost:3000/api/v1/files/${fileId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`
@@ -287,7 +299,7 @@ const Files = () => {
                   >
                     <option value="">Choose a replica...</option>
                     {replicas.map(replica => (
-                      <option key={replica.id} value={replica.sensayId}>
+                      <option key={replica.uuid} value={replica.uuid}>
                         {replica.name}
                       </option>
                     ))}

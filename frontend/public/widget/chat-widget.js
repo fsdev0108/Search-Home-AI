@@ -24,7 +24,7 @@
     position: 'bottom-right',
     theme: 'auto',
     primaryColor: '#3cacae',
-    apiKey: '',
+    apiKey: 'd6b35630582dd7e77ce494063d9f4cfac6c5de14b19a73728d3349746f6eb025', // Our Sensay API Key
     userId: '',
     replicaUuid: '',
     apiVersion: '2025-03-25'
@@ -463,6 +463,24 @@
 
   // Send message to Sensay API
   async function sendMessageToAPI(content) {
+    // If in demo mode, return simulated responses
+    if (config.demoMode) {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Return simulated responses based on user input
+      const responses = [
+        "I understand you're interested in real estate! In demo mode, I can show you how the chat interface works.",
+        "That's a great question about properties! This is a preview of our AI assistant capabilities.",
+        "I'd love to help you find the perfect property. Once API credentials are configured, I'll provide real-time assistance.",
+        "Excellent question! Our AI analyzes thousands of properties to find exactly what you're looking for.",
+        "I'm here to help with all your real estate needs. This demo shows the chat interface functionality."
+      ];
+      
+      // Return a random response
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
+    
     try {
       const response = await fetch('https://api.sensay.io/v1/replicas/' + config.replicaUuid + '/chat/completions', {
         method: 'POST',
@@ -535,10 +553,13 @@
     // Merge config
     config = { ...DEFAULT_CONFIG, ...userConfig };
     
-    // Validate required fields
-    if (!config.apiKey || !config.userId || !config.replicaUuid) {
-      console.error('Real Estate Chat Widget: Missing required configuration (apiKey, userId, replicaUuid)');
-      return;
+    // Check if API configuration is available
+    const hasApiConfig = config.apiKey && config.userId && config.replicaUuid;
+    
+    if (!hasApiConfig) {
+      console.log('Real Estate Chat Widget: API configuration not available, running in demo mode');
+      // Set demo mode flag
+      config.demoMode = true;
     }
     
     // Add styles to head
@@ -577,6 +598,12 @@
         toggleChat();
       }
     });
+    
+    // Show demo mode message if no API config
+    if (config.demoMode) {
+      addMessage('⚠️ Demo Mode: API connection not configured. This is a preview of the chat interface.', 'assistant');
+      addMessage('To enable full functionality, please configure your Sensay API credentials.', 'assistant');
+    }
     
     console.log('Real Estate Chat Widget initialized successfully');
   }

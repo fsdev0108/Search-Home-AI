@@ -1,12 +1,12 @@
 // API Configuration - ONLY Backend calls
 const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 }
 
 // Generic API call function to backend only
 async function apiCall(endpoint, options = {}) {
   try {
-    const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/v1${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers
@@ -25,62 +25,106 @@ async function apiCall(endpoint, options = {}) {
   }
 }
 
-// Users API - Backend only
-export const usersAPI = {
-  // Get all users
-  getAll: () => apiCall('/users'),
+// Integrations API - Backend only
+export const integrationsAPI = {
+  // Get all integrations
+  getAll: () => apiCall('/integrations'),
   
-  // Get user by ID
-  getById: (id) => apiCall(`/users/${id}`),
+  // Get integration by ID
+  getById: (id) => apiCall(`/integrations/${id}`),
   
-  // Create new user (backend handles Sensay integration)
-  create: (userData) => apiCall('/users', {
+  // Create new integration
+  create: (integrationData) => apiCall('/integrations', {
     method: 'POST',
-    body: JSON.stringify(userData)
+    body: JSON.stringify(integrationData)
   }),
   
-  // Update user
-  update: (id, userData) => apiCall(`/users/${id}`, {
+  // Update integration
+  update: (id, integrationData) => apiCall(`/integrations/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(userData)
+    body: JSON.stringify(integrationData)
   }),
   
-  // Delete user
-  delete: (id) => apiCall(`/users/${id}`, {
+  // Delete integration
+  delete: (id) => apiCall(`/integrations/${id}`, {
     method: 'DELETE'
-  }),
-  
-  // Get users count
-  getCount: () => apiCall('/users/count')
+  })
 }
 
-// Replicas API - Backend only
-export const replicasAPI = {
-  // Get all replicas
-  getAll: () => apiCall('/replicas'),
+// Users API - Backend only (via integrations)
+export const usersAPI = {
+  // Get all users for an integration
+  getAll: (integrationId) => apiCall(`/integrations/${integrationId}/users`),
   
-  // Get replica by UUID
-  getByUuid: (uuid) => apiCall(`/replicas/${uuid}`),
+  // Get user by ID (not available in Sensay API)
+  getById: (integrationId, userId) => apiCall(`/integrations/${integrationId}/users/${userId}`),
+  
+  // Create new user (backend handles Sensay integration)
+  create: (integrationId, userData) => apiCall(`/integrations/${integrationId}/users`, {
+    method: 'POST',
+    body: JSON.stringify(userData)
+  }),
+  
+  // Update user (not available in Sensay API)
+  update: (integrationId, userId, userData) => apiCall(`/integrations/${integrationId}/users/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify(userData)
+  }),
+  
+  // Delete user (not available in Sensay API)
+  delete: (integrationId, userId) => apiCall(`/integrations/${integrationId}/users/${userId}`, {
+    method: 'DELETE'
+  })
+}
+
+// Replicas API - Backend only (via integrations)
+export const replicasAPI = {
+  // Get all replicas for an integration
+  getAll: (integrationId) => apiCall(`/integrations/${integrationId}/replicas`),
+  
+  // Get replica by UUID (not available in Sensay API)
+  getByUuid: (integrationId, uuid) => apiCall(`/integrations/${integrationId}/replicas/${uuid}`),
   
   // Create new replica (backend handles Sensay integration)
-  create: (replicaData) => apiCall('/replicas', {
+  create: (integrationId, replicaData) => apiCall(`/integrations/${integrationId}/replicas`, {
     method: 'POST',
     body: JSON.stringify(replicaData)
   }),
   
-  // Update replica
-  update: (uuid, replicaData) => apiCall(`/replicas/${uuid}`, {
+  // Update replica (not available in Sensay API)
+  update: (integrationId, uuid, replicaData) => apiCall(`/integrations/${integrationId}/replicas/${uuid}`, {
     method: 'PUT',
     body: JSON.stringify(replicaData)
   }),
   
-  // Delete replica
-  delete: (uuid) => apiCall(`/replicas/${uuid}`, {
+  // Delete replica (not available in Sensay API)
+  delete: (integrationId, uuid) => apiCall(`/integrations/${integrationId}/replicas/${uuid}`, {
     method: 'DELETE'
+  })
+}
+
+// HubSpot API - Backend only (via integrations)
+export const hubspotAPI = {
+  // Connect HubSpot to integration
+  connect: (integrationId, apiKey) => apiCall(`/integrations/${integrationId}/hubspot/connect`, {
+    method: 'POST',
+    body: JSON.stringify({ apiKey })
   }),
   
-  // Get replicas count
-  getCount: () => apiCall('/replicas/count')
+  // Get HubSpot connection status
+  getStatus: (integrationId) => apiCall(`/integrations/${integrationId}/hubspot/status`),
+  
+  // Sync HubSpot data
+  sync: (integrationId, data) => apiCall(`/integrations/${integrationId}/hubspot/sync`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  })
+}
+
+// Sync Logs API - Backend only (via integrations)
+export const syncLogsAPI = {
+  // Get sync logs for an integration
+  getAll: (integrationId) => apiCall(`/integrations/${integrationId}/logs`)
 }
 
 // Files API - Backend only
@@ -110,32 +154,50 @@ export const filesAPI = {
 }
 
 // Dashboard API - Backend only
+// Knowledge Base API
+export const knowledgeBaseAPI = {
+  getKnowledgeBase: (replicaUUID) => apiCall(`/replicas/${replicaUUID}/knowledge-base`),
+  getKnowledgeBaseEntry: (replicaUUID, knowledgeBaseID) => apiCall(`/replicas/${replicaUUID}/knowledge-base/${knowledgeBaseID}`)
+}
+
+// Auth API - Backend only
+export const authAPI = {
+  login: (email, password) => apiCall('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  })
+}
+
 export const dashboardAPI = {
-  // Get dashboard statistics
-  getStats: async () => {
+  // Get dashboard statistics for an integration
+  getStats: async (integrationId) => {
     try {
-      const [usersCount, replicasCount, filesCount] = await Promise.all([
-        usersAPI.getCount(),
-        replicasAPI.getCount(),
-        filesAPI.getCount()
+      const [users, replicas, syncLogs] = await Promise.all([
+        usersAPI.getAll(integrationId),
+        replicasAPI.getAll(integrationId),
+        syncLogsAPI.getAll(integrationId)
       ])
       
       return {
-        users: usersCount.count || 0,
-        replicas: replicasCount.count || 0,
-        files: filesCount.count || 0,
-        storage: (filesCount.count || 0) * 2.5 // 2.5MB per file average
+        users: users.data?.length || 0,
+        replicas: replicas.data?.length || 0,
+        syncLogs: syncLogs.data?.length || 0,
+        lastSync: syncLogs.data?.[0]?.createdAt || null
       }
     } catch (error) {
       console.error('Error loading dashboard stats:', error)
-      return { users: 0, replicas: 0, files: 0, storage: 0 }
+      return { users: 0, replicas: 0, syncLogs: 0, lastSync: null }
     }
   }
 }
 
 export default {
+  integrations: integrationsAPI,
   users: usersAPI,
   replicas: replicasAPI,
+  hubspot: hubspotAPI,
+  syncLogs: syncLogsAPI,
   files: filesAPI,
+  knowledgeBase: knowledgeBaseAPI,
   dashboard: dashboardAPI
 }

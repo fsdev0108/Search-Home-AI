@@ -3,11 +3,10 @@ import './Header.css'
 const Header = ({ currentTab, onTabChange, user, onLogout }) => {
     const tabs = [
         { id: 'dashboard', label: 'Dashboard' },
-        { id: 'organizations', label: 'Organizations', adminOnly: true },
         { id: 'users', label: 'Users', adminOnly: true },
         { id: 'replicas', label: 'Replicas' },
-        { id: 'files', label: 'Files' },
-        { id: 'settings', label: 'Settings' }
+        { id: 'widget', label: 'Widget', userOnly: true },
+        { id: 'settings', label: 'Settings', userOnly: true }
     ]
 
     const handleLogout = () => {
@@ -25,6 +24,10 @@ const Header = ({ currentTab, onTabChange, user, onLogout }) => {
                     {tabs.map(tab => {
                         // Filtrar tabs baseado no role do usuário
                         if (tab.adminOnly && user.role !== 'admin') {
+                            return null
+                        }
+
+                        if (tab.userOnly && user.role === 'admin') {
                             return null
                         }
 
