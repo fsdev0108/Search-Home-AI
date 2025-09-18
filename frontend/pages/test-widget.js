@@ -16,11 +16,11 @@ export default function TestWidget() {
   const [widgetConfig, setWidgetConfig] = useState({
     userId: 'test-user-123',
     replicaUuid: '9c9ffb4c-13a2-4424-96ea-a600320ba6a3',
-    position: 'bottom-right',
-    theme: 'auto',
-    primaryColor: '#3cacae'
-  });
-
+          position: 'bottom-right',
+          theme: 'auto',
+          primaryColor: '#3cacae'
+        });
+        
   useEffect(() => {
     // Load the widget script
     const script = document.createElement('script');
@@ -73,7 +73,7 @@ export default function TestWidget() {
           <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
             Widget Test Page
           </h1>
-
+          
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">
               Widget Configuration
@@ -130,8 +130,8 @@ export default function TestWidget() {
                   <option value="top-right">Top Right</option>
                   <option value="top-left">Top Left</option>
                 </select>
-              </div>
-
+            </div>
+            
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Theme
@@ -168,17 +168,17 @@ export default function TestWidget() {
               >
                 {widgetLoaded ? 'Initialize Widget' : 'Loading Widget...'}
               </button>
-              
-              <button
+            
+            <button
                 onClick={toggleWidget}
                 disabled={!widgetLoaded}
                 className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
+            >
                 Toggle Widget
-              </button>
-            </div>
+            </button>
           </div>
-
+          </div>
+          
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">
               Test Content

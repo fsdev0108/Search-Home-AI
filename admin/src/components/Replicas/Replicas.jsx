@@ -128,6 +128,30 @@ const Replicas = () => {
     }
   }
 
+  const handleDeleteEntry = async (entry) => {
+    if (!window.confirm(`Are you sure you want to delete "${entry.title}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      await knowledgeBaseAPI.deleteKnowledgeBaseEntry(expandedReplica.uuid, entry.id)
+
+      // Refresh the knowledge base list
+      await loadReplicaFiles(expandedReplica)
+
+      // Close entry details if the deleted entry was expanded
+      if (expandedEntry?.id === entry.id) {
+        setExpandedEntry(null)
+        setEntryDetails(null)
+      }
+
+      setError(null)
+    } catch (error) {
+      console.error('Error deleting entry:', error)
+      setError('Failed to delete entry. Please try again.')
+    }
+  }
+
   const handleDownload = (entry) => {
     if (entry.type === 'file' && entry.file?.downloadURL) {
       // Open download URL in new tab
@@ -380,6 +404,13 @@ const Replicas = () => {
                                     {file.type === 'file' ? 'Download' : 'Open'}
                                   </button>
                                 )}
+                                <button
+                                  className="btn btn-sm btn-danger"
+                                  onClick={() => handleDeleteEntry(file)}
+                                  title="Delete entry"
+                                >
+                                  Delete
+                                </button>
                               </div>
                             </td>
                           </tr>

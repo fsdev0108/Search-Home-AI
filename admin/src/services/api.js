@@ -157,7 +157,10 @@ export const filesAPI = {
 // Knowledge Base API
 export const knowledgeBaseAPI = {
   getKnowledgeBase: (replicaUUID) => apiCall(`/replicas/${replicaUUID}/knowledge-base`),
-  getKnowledgeBaseEntry: (replicaUUID, knowledgeBaseID) => apiCall(`/replicas/${replicaUUID}/knowledge-base/${knowledgeBaseID}`)
+  getKnowledgeBaseEntry: (replicaUUID, knowledgeBaseID) => apiCall(`/replicas/${replicaUUID}/knowledge-base/${knowledgeBaseID}`),
+  deleteKnowledgeBaseEntry: (replicaUUID, knowledgeBaseID) => apiCall(`/replicas/${replicaUUID}/knowledge-base/${knowledgeBaseID}`, {
+    method: 'DELETE'
+  })
 }
 
 // Auth API - Backend only

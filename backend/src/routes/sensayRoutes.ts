@@ -24,6 +24,7 @@ export async function sensayRoutes(fastify: FastifyInstance) {
   // Knowledge Base Management (via Sensay API)
   fastify.get('/replicas/:replicaUUID/knowledge-base', sensayController.getKnowledgeBase.bind(sensayController))
   fastify.get('/replicas/:replicaUUID/knowledge-base/:knowledgeBaseID', sensayController.getKnowledgeBaseEntry.bind(sensayController))
+  fastify.delete('/replicas/:replicaUUID/knowledge-base/:knowledgeBaseID', sensayController.deleteKnowledgeBaseEntry.bind(sensayController))
 
   // Sync Logs
   fastify.get('/integrations/:integrationId/logs', sensayController.getSyncLogs.bind(sensayController))

@@ -142,23 +142,23 @@
 
         <h2>Quick Start</h2>
         <div class="code-block">
-            &lt;!-- Add this to your HTML head or before closing body tag --&gt;
-            &lt;script src="https://yourdomain.com/chat-widget.js"&gt;&lt;/script&gt;
+            &lt;!-- For local testing --&gt;
+            &lt;script src="http://localhost:3001/chat-widget.js"&gt;&lt;/script&gt;
+            &lt;!-- For production --&gt;
+            &lt;!-- &lt;script src="https://yourdomain.com/chat-widget.js"&gt;&lt;/script&gt; --&gt;
             &lt;script&gt;
             RealEstateChat.init({
-            apiKey: 'your_sensay_api_key',
-            userId: 'your_user_id',
-            replicaUuid: 'your_replica_uuid'
+            userId: '5fde0e22-f518-46d1-a8c6-235215e8762f',
+            replicaUuid: '7779023f-23e6-426d-ab91-f3d0fef67e83',
+            position: 'bottom-right',
+            theme: 'auto',
+            primaryColor: '#3cacae'
             });
             &lt;/script&gt;
         </div>
 
         <div class="config-options">
             <h3>Configuration Options</h3>
-
-            <div class="config-item">
-                <strong>apiKey</strong> (required) - Your Sensay API key
-            </div>
 
             <div class="config-item">
                 <strong>userId</strong> (required) - Your existing Sensay user ID
@@ -184,9 +184,8 @@
         <h2>Advanced Example</h2>
         <div class="code-block">
             RealEstateChat.init({
-            apiKey: 'sk_1234567890abcdef',
-            userId: 'user_12345',
-            replicaUuid: 'replica_uuid_here',
+            userId: '5fde0e22-f518-46d1-a8c6-235215e8762f',
+            replicaUuid: '776aae6b-7ffe-462d-ad18-ffd89e21f146',
             position: 'bottom-left',
             theme: 'dark',
             primaryColor: '#ff6b6b'
@@ -194,8 +193,8 @@
         </div>
 
         <div class="note">
-            <strong>Note:</strong> Make sure you have already created a user and replica in your Sensay dashboard before
-            using this widget.
+            <strong>Note:</strong> The API key is automatically configured on our server. You only need to provide your
+            userId and replicaUuid.
         </div>
 
         <h2>Features</h2>
@@ -225,14 +224,12 @@
         </p>
     </div>
 
-    <!-- This is the actual widget - you can see it working on this page! -->
-    <script src="chat-widget.js"></script>
+    <!-- Real Estate AI Chat Widget -->
+    <script src="chat-widget.js?v=2"></script>
     <script>
-        // Example configuration - replace with your actual values
         RealEstateChat.init({
-            apiKey: 'your_api_key_here',
-            userId: 'your_user_id_here',
-            replicaUuid: 'your_replica_uuid_here',
+            userId: '5fde0e22-f518-46d1-a8c6-235215e8762f',
+            replicaUuid: '7779023f-23e6-426d-ab91-f3d0fef67e83',
             position: 'bottom-right',
             theme: 'auto',
             primaryColor: '#3cacae'

@@ -1,0 +1,11 @@
+property_id,address,neighborhood,bedrooms,bathrooms,area_sqft,price,type,status,description,features,parking_spaces,floor,building_age,hoa_fee,property_tax,contact_agent,photos_url
+APT001,123 Flower Street,Manhattan,3,2,915,750000,apartment,available,Modern 3BR apartment with balcony,Pool;Gym;Concierge;Doorman,1,8,2015,650,8500,John Smith,photos.com/apt001
+APT002,456 Park Avenue,Upper East Side,2,2,807,680000,apartment,available,2BR with Central Park view,Pool;Gym;Parking;City Views,1,12,2018,580,7200,Maria Johnson,photos.com/apt002
+HOUSE001,789 Oak Street,Brooklyn Heights,4,3,1291,950000,house,available,Victorian house with garden,Garden;Garage;Security;Historic,2,0,1920,0,12000,Peter Wilson,photos.com/house001
+LOFT001,321 Industrial Way,SoHo,2,1,1022,850000,loft,available,Industrial loft with high ceilings,High Ceilings;Industrial Design;Open Kitchen;Exposed Brick,1,3,2010,450,9200,Anna Davis,photos.com/loft001
+STUDIO001,654 Broadway,Midtown,1,1,484,520000,studio,available,Compact studio near Times Square,Furnished;AC;Internet;Near Subway,0,15,2019,380,5800,Carlos Rivera,photos.com/studio001
+APT003,987 Riverside Drive,Upper West Side,3,2,968,820000,apartment,available,Spacious 3BR near Central Park,Pool;Playground;Gym;River Views,1,6,2017,720,8900,Lucy Brown,photos.com/apt003
+HOUSE002,147 Fifth Avenue,Tribeca,5,4,1937,2200000,house,available,Luxury townhouse in prime location,Pool;Sauna;Wine Cellar;Security;Rooftop Terrace,3,0,2005,0,28000,Robert Taylor,photos.com/house002
+APT004,258 Bleecker Street,Greenwich Village,2,2,753,620000,apartment,available,Charming 2BR in historic neighborhood,Balcony;Near Restaurants;Cultural Area;Historic Building,1,4,1925,520,6800,Fernanda Martinez,photos.com/apt004
+CONDO001,159 Columbus Circle,Lincoln Square,2,2,850,1150000,condo,available,Luxury condo with Columbus Circle views,Concierge;Fitness Center;Roof Deck;City Views,1,25,2008,890,12500,Michael Chen,photos.com/condo001
+HOUSE003,741 Atlantic Avenue,Park Slope,3,2,1100,1100000,house,available,Brownstone with original details,Garden;Fireplace;Original Details;Hardwood Floors,1,0,1900,0,15000,Sarah Thompson,photos.com/house003

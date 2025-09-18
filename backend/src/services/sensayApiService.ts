@@ -263,6 +263,22 @@ export class SensayApiService {
     }
   }
 
+  async uploadTextToKnowledgeBase(replicaId: string, textContent: string, title: string = 'Text Document'): Promise<any> {
+    try {
+      // Upload text content directly using the text field
+      const uploadRequest = await this.uploadToKnowledgeBase(replicaId, {
+        title: title,
+        text: textContent,
+        autoRefresh: false
+      })
+      
+      return uploadRequest
+    } catch (error: any) {
+      console.error('Error uploading text to knowledge base:', error.response?.data || error.message)
+      throw new Error(`Failed to upload text to knowledge base: ${error.response?.data?.message || error.message}`)
+    }
+  }
+
   async getKnowledgeBaseEntries(replicaId: string): Promise<any[]> {
     try {
       const response = await this.api.get(`/replicas/${replicaId}/knowledge-base`)

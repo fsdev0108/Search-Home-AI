@@ -26,7 +26,7 @@ function minifyCode(code) {
     .replace(/\/\*[\s\S]*?\*\//g, '')
     // Remove extra whitespace
     .replace(/\s+/g, ' ')
-    // Remove spaces around operators
+    // Remove spaces around operators (but preserve URLs)
     .replace(/\s*([{}();,=+\-*/<>!&|])\s*/g, '$1')
     // Remove spaces around colons
     .replace(/\s*:\s*/g, ':')

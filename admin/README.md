@@ -1,166 +1,169 @@
-# 🏠 Sensay Admin Panel
+# 🏠 Sensay Admin Panel - Testing Guide
 
-Administrative panel for managing users, replicas and files in the Sensay system.
+Administrative panel for managing users, replicas and files in the Sensay system for real estate.
 
-## ✨ Features
+## 🚀 How to Test
 
-- **Dashboard**: System overview with statistics
-- **Users**: Create, view and manage B2B users
-- **Replicas**: Create and manage AI replicas
-- **Files**: Upload, view and manage training files
-
-## 🚀 Technologies
-
-- **Vite** - Fast build tool
-- **React 18** - UI library
-- **Pure CSS** - Custom styling
-- **Responsive** - Works on desktop and mobile
-
-## 📁 Project Structure
-
+### 1. Access the Panel
 ```
-src/
-├── components/
-│   ├── Header/           # Header with navigation
-│   │   ├── Header.jsx
-│   │   └── Header.css
-│   ├── Dashboard/        # Main dashboard
-│   │   ├── Dashboard.jsx
-│   │   └── Dashboard.css
-│   ├── Users/            # User management
-│   │   ├── Users.jsx
-│   │   └── Users.css
-│   ├── Replicas/         # Replica management
-│   │   ├── Replicas.jsx
-│   │   └── Replicas.css
-│   ├── Files/            # File management
-│   │   ├── Files.jsx
-│   │   └── Files.css
-│   └── Modal/            # Reusable modal component
-│       ├── Modal.jsx
-│       └── Modal.css
-├── services/
-│   └── api.js            # API integration service
-├── utils/                 # Utility functions
-├── App.jsx               # Main component
-├── App.css               # Global styles
-└── main.jsx              # Entry point
+http://localhost:3000
 ```
 
-## 📦 Installation
+### 2. Login
 
-```bash
-# Install dependencies
-npm install
+#### 👑 **Admin (Full Access)**
+- **Email:** `admin@herainov.com`
+- **Password:** `admin123`
+- **Permissions:** Access to all functionalities
 
-# Run in development
-npm run dev
+#### 👤 **Regular User (Limited Access)**
+- **Email:** `user@herainov.com`
+- **Password:** `user123`
+- **Permissions:** Access only to own replicas and data
 
-# Build for production
-npm run build
+## 📋 Features by User Type
 
-# Preview build
-npm run preview
+### 👑 **Admin - Complete Features**
+
+#### **Dashboard**
+- ✅ Overview of all replicas
+- ✅ Usage statistics
+- ✅ User management
+
+#### **Users**
+- ✅ View all users in the system
+- ✅ Manage user accounts
+- ✅ View user statistics
+
+#### **Replicas**
+- ✅ View all replicas in the system
+- ✅ Manage replicas from any user
+- ✅ View knowledge base files
+
+### 👤 **Regular User - Limited Features**
+
+#### **Dashboard**
+- ✅ View own replicas
+- ✅ Personal statistics
+
+#### **Replicas**
+- ✅ View only own replicas
+- ✅ Manage knowledge base files
+- ✅ View conversation history
+
+#### **Widget**
+- ✅ Generate embed code for own replicas
+- ✅ Configure personalized widget
+
+#### **Settings**
+- ✅ HubSpot integration
+- ✅ Personal settings
+
+## 🏢 Testing Scenarios for Real Estate
+
+### **Scenario 1: Creating a Real Estate Replica**
+
+#### **1. Login as Admin**
+```
+Email: admin@herainov.com
+Password: admin123
 ```
 
-## 🔧 Configuration
+#### **2. Create Model Replica**
+- **Name:** `Real Estate Sales Assistant`
+- **Description:** `Agent specialized in residential and commercial real estate sales`
+- **Type:** `Real Estate Sales`
+- **Settings:**
+  - Personality: Professional and consultative
+  - Specialization: Real estate sales
+  - Tone: Friendly and trustworthy
 
-### Environment Variables
+#### **3. Add Knowledge Base Files**
 
-Create a `.env.local` file in the project root:
+The system will automatically add the following files when you integrate with HubSpot:
 
-```env
-VITE_API_BASE_URL=http://localhost:3000/api
-VITE_SENSAY_API_URL=https://api.sensay.io/v1
-VITE_SENSAY_API_KEY=your-sensay-api-key-here
+##### **Automatic Files (Added by System):**
+- **Real Estate Agent Instructions** - Professional guidelines for the AI agent
+- **Properties Database** - CSV file with your property listings from HubSpot
+
+##### **Manual Files (Optional):**
+- **Company Information** - Your real estate agency details
+- **Additional FAQ** - Specific questions about your services
+- **Neighborhood Guide** - Information about areas you serve
+
+### **Scenario 2: Widget Testing for Client**
+
+#### **1. Login as Regular User**
+```
+Email: user@herainov.com
+Password: user123
 ```
 
-### Backend Integration
+#### **2. Configure Widget**
+- **Replica:** Select created replica
+- **Position:** `bottom-right`
+- **Theme:** `auto`
+- **Color:** `#3cacae`
 
-The admin panel integrates with the backend through these routes:
-
-- `GET /api/users` - List users
-- `POST /api/users` - Create user
-- `GET /api/replicas` - List replicas
-- `POST /api/replicas` - Create replica
-- `GET /api/files` - List files
-- `POST /api/files/upload` - Upload file
-
-## 🔌 API Service
-
-The `src/services/api.js` file provides:
-
-- **usersAPI**: User CRUD operations
-- **replicasAPI**: Replica CRUD operations
-- **filesAPI**: File management operations
-- **sensayAPI**: Direct Sensay API integration
-- **dashboardAPI**: Dashboard statistics
-
-### Example Usage
-
-```javascript
-import { usersAPI, sensayAPI } from '../services/api'
-
-// Create user in backend
-const user = await usersAPI.create({
-  id: 'user123',
-  name: 'Company Name',
-  email: 'admin@company.com'
-})
-
-// Create replica in Sensay
-const replica = await sensayAPI.createReplica({
-  name: 'Property Assistant',
-  ownerID: 'user123'
-})
+#### **3. Generate Embed Code**
+```html
+<script src="https://yourdomain.com/chat-widget.js"></script>
+<script>
+  RealEstateChat.init({
+    userId: 'user-uuid',
+    replicaUuid: 'replica-uuid',
+    position: 'bottom-right',
+    theme: 'auto',
+    primaryColor: '#3cacae'
+  });
+</script>
 ```
 
-## 📱 Responsiveness
+#### **4. Test Widget**
+- Copy generated code
+- Paste in test page
+- Verify chat functionality
 
-The panel is fully responsive and works on:
+### **Scenario 3: HubSpot Integration User**
 
-- **Desktop** (1200px+)
-- **Tablet** (768px - 1199px)
-- **Mobile** (< 768px)
+#### **1. Configure HubSpot**
+- **API Key:** Insert HubSpot key
+- **Target Replica:** Select replica to receive data
+- **Sync:** Execute synchronization
 
-## 🎯 Next Steps
+#### **2. Verify Data**
+- Access selected replica
+- Check knowledge base files
+- Confirm property data
 
-- [ ] Implement authentication and authorization
-- [ ] Add edit functionality
-- [ ] Implement search and filters
-- [ ] Add pagination to tables
-- [ ] Implement real-time notifications
-- [ ] Add audit logs
 
-## 🐛 Troubleshooting
+## 📊 What You Need to Train the Agent
 
-### Problem: "Module not found"
-```bash
-# Clear cache and reinstall
-rm -rf node_modules package-lock.json
-npm install
-```
+### **Required Data:**
+1. **Property Spreadsheet** - Your property listings (CSV format)
+2. **Real Estate Agency Information** - Your company details and services
 
-### Problem: Port already in use
-```bash
-# Use different port
-npm run dev -- --port 3002
-```
+### **Property Spreadsheet Should Include:**
+- Property ID, Address, Neighborhood, Bedrooms, Bathrooms
+- Area (sqm), Price, Type, Status, Description
+- Features, Parking, Floor, Building Age
+- Condominium Fee, IPTU, Contact Agent, Photos URL
 
-## 📄 License
 
-This project is part of the Sensay system and is under the same license.
+## 🎯 Testing Objectives
 
-## 🤝 Contributing
+The system should demonstrate:
+- ✅ Creation of real estate specialized assistants
+- ✅ Upload of property catalogs and knowledge bases
+- ✅ Widget configuration for real estate websites
+- ✅ Integration with CRM systems (HubSpot)
+- ✅ Role-based access control
+- ✅ Personalized embed code generation
 
-To contribute to the project:
+## 💡 Note
 
-1. Fork the repository
-2. Create a branch for your feature
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+This README provides **example scenarios** and **suggested approaches** for testing the admin panel. Feel free to adapt the examples to your specific needs and use cases. The goal is to demonstrate the system's capabilities with realistic real estate scenarios.
 
 ---
 
-**Developed with ❤️ for the Sensay system**
+**Developed with ❤️ for the Sensay system - Real Estate Solutions**

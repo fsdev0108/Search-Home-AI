@@ -16,22 +16,24 @@ export async function hubspotRoutes(fastify: FastifyInstance) {
         });
       }
 
-      console.log('🔄 Starting HubSpot sync simulation...');
+      const result = await fetchPropertiesFromHubSpot();
 
-      // Simular busca de dados do HubSpot
-      const properties = await fetchPropertiesFromHubSpot();
+      let csvPath: string;
+      let recordCount: number;
+      
+      if (typeof result === 'object' && 'csvPath' in result) {
+        // Using existing CSV file
+        csvPath = result.csvPath;
+        recordCount = result.recordCount;
+      } else {
+        const properties = result as any[];
+        csvPath = generateCSV(properties, 'properties_from_hubspot.csv') || '';
+        recordCount = properties.length;
+      }
 
-      // Gerar CSV com os dados
-      const csvPath = generateCSV(properties, 'properties_from_hubspot.csv');
-
-      // Integrar com agente IA (Sensay)
-      console.log('🤖 Integrating with AI agent (Sensay)...');
       const sensayService = new SensayApiService('placeholder-secret');
       
-      // Ler o conteúdo do CSV gerado
       const csvContent = fs.readFileSync(csvPath, 'utf8');
-      console.log(`📄 CSV content length: ${csvContent.length} characters`);
-      console.log(`📄 CSV preview: ${csvContent.substring(0, 200)}...`);
       
       // Enviar para a knowledge base do Sensay
       // TODO: Obter o replicaUuid do usuário logado ou configuração
@@ -46,14 +48,13 @@ export async function hubspotRoutes(fastify: FastifyInstance) {
         console.log('✅ CSV uploaded to Sensay knowledge base successfully');
       } catch (sensayError) {
         console.error('⚠️ Failed to upload to Sensay, but CSV was generated:', sensayError);
-        // Continue mesmo se falhar o upload para Sensay
       }
 
       return reply.send({
         success: true,
         message: 'HubSpot data synced successfully and uploaded to AI agent',
         data: {
-          propertiesCount: properties.length,
+          propertiesCount: recordCount,
           csvPath: csvPath,
           aiAgentIntegrated: true,
           sensayUploaded: true,

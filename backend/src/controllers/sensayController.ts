@@ -101,9 +101,24 @@ export class SensayController {
         throw new Error('Integration not found')
       }
 
-      const properties = await fetchPropertiesFromHubSpot()
-      const csvPath = generateCSV(properties, `properties_integration_${integrationId}.csv`)
-      const csvContent = fs.readFileSync(csvPath, 'utf8')
+      const result = await fetchPropertiesFromHubSpot()
+      
+      let csvPath: string
+      let csvContent: string
+      let recordCount: number
+      
+      if (typeof result === 'object' && 'csvPath' in result) {
+        // Using existing CSV file
+        csvPath = result.csvPath
+        csvContent = fs.readFileSync(csvPath, 'utf8')
+        recordCount = result.recordCount
+      } else {
+        // Fallback: generate CSV from simulated data
+        const properties = result as any[]
+        csvPath = generateCSV(properties, `properties_integration_${integrationId}.csv`) || ''
+        csvContent = fs.readFileSync(csvPath, 'utf8')
+        recordCount = properties.length
+      }
 
       const sensayService = new SensayApiService(integration.organizationSecret)
       let uploadResults = []
@@ -122,11 +137,26 @@ export class SensayController {
           const targetReplica = replicas.find(r => r.uuid === replicaId)
           const replicaName = targetReplica?.name || 'Unknown Replica'
 
+          // Upload CSV with properties
           await sensayService.uploadCSVToKnowledgeBase(
             replicaId,
             csvContent,
             `HubSpot Properties - ${replicaName}`
           )
+
+          // Upload real estate agent instructions
+          const fs = require('fs')
+          const path = require('path')
+          const instructionsPath = path.join(__dirname, '../templates/real-estate-agent-instructions.txt')
+          
+          if (fs.existsSync(instructionsPath)) {
+            const instructionsContent = fs.readFileSync(instructionsPath, 'utf8')
+            await sensayService.uploadTextToKnowledgeBase(
+              replicaId,
+              instructionsContent,
+              'Real Estate Agent Instructions'
+            )
+          }
 
           uploadResults.push({
             replicaId: replicaId,
@@ -171,11 +201,26 @@ export class SensayController {
               continue
             }
             
+            // Upload CSV with properties
             await sensayService.uploadCSVToKnowledgeBase(
               replica.uuid,
               csvContent,
               `HubSpot Properties - ${replica.name}`
             )
+
+            // Upload real estate agent instructions
+            const fs = require('fs')
+            const path = require('path')
+            const instructionsPath = path.join(__dirname, '../templates/real-estate-agent-instructions.txt')
+            
+            if (fs.existsSync(instructionsPath)) {
+              const instructionsContent = fs.readFileSync(instructionsPath, 'utf8')
+              await sensayService.uploadTextToKnowledgeBase(
+                replica.uuid,
+                instructionsContent,
+                'Real Estate Agent Instructions'
+              )
+            }
 
             uploadResults.push({
               replicaId: replica.uuid,
@@ -197,7 +242,7 @@ export class SensayController {
         where: { integrationId },
         update: {
           lastSync: new Date(),
-          propertiesCount: properties.length,
+          propertiesCount: recordCount,
           syncStatus: 'success'
         },
         create: {
@@ -206,7 +251,7 @@ export class SensayController {
           isConnected: false,
           syncStatus: 'success',
           lastSync: new Date(),
-          propertiesCount: properties.length
+          propertiesCount: recordCount
         }
       })
 
@@ -214,7 +259,7 @@ export class SensayController {
         success: true,
         message: 'HubSpot data synced successfully',
         data: {
-          propertiesCount: properties.length,
+          propertiesCount: recordCount,
           replicasUpdated: uploadResults.length,
           uploadResults: uploadResults
         }
@@ -593,6 +638,41 @@ export class SensayController {
       return reply.status(500).send({
         success: false,
         error: 'Failed to retrieve knowledge base entry'
+      })
+    }
+  }
+
+  async deleteKnowledgeBaseEntry(request: any, reply: any) {
+    try {
+      const { replicaUUID, knowledgeBaseID } = request.params
+
+      if (!replicaUUID || !knowledgeBaseID) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Replica UUID and Knowledge Base ID are required'
+        })
+      }
+
+      const organizationSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      if (!organizationSecret) {
+        return reply.status(500).send({
+          success: false,
+          error: 'Organization secret not configured'
+        })
+      }
+
+      const sensayService = new SensayApiService(organizationSecret)
+      await sensayService.deleteKnowledgeBaseEntry(replicaUUID, knowledgeBaseID)
+
+      return reply.send({
+        success: true,
+        message: 'Knowledge base entry deleted successfully'
+      })
+    } catch (error: any) {
+      console.error('Error deleting knowledge base entry:', error)
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to delete knowledge base entry'
       })
     }
   }

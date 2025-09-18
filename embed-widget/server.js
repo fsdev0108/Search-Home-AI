@@ -30,7 +30,6 @@ const server = http.createServer((req, res) => {
   const fileMap = {
     '/chat-widget.js': 'chat-widget.js',
     '/chat-widget.min.js': 'chat-widget.min.js',
-    '/chat-widget-simple.js': 'chat-widget-simple.js',
     '/config.js': 'config.js'
   };
   
@@ -81,7 +80,6 @@ server.listen(PORT, () => {
   console.log(`🔗 Available files:`);
   console.log(`   - http://localhost:${PORT}/chat-widget.js`);
   console.log(`   - http://localhost:${PORT}/chat-widget.min.js`);
-  console.log(`   - http://localhost:${PORT}/chat-widget-simple.js`);
   console.log(`   - http://localhost:${PORT}/config.js`);
   console.log(`\n💡 Frontend should run on http://localhost:3000`);
   console.log(`💡 Test widget embed at: http://localhost:3000/test-widget`);

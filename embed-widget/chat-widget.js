@@ -482,7 +482,7 @@
     }
     
     try {
-      const response = await fetch('https://api.sensay.io/v1/replicas/' + config.replicaUuid + '/chat/completions', {
+      const response = await fetch(`https://api.sensay.io/v1/replicas/${config.replicaUuid}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
