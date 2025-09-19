@@ -308,6 +308,31 @@ export class SensayApiService {
     }
   }
 
+  // Send message to replica and get response
+  async sendMessage(replicaId: string, messageData: {
+    message: string
+    userId: string
+    channel?: string
+    metadata?: any
+  }): Promise<{ response: string; messageId?: string }> {
+    try {
+      const response = await this.api.post(`/replicas/${replicaId}/chat`, {
+        message: messageData.message,
+        user_id: messageData.userId,
+        channel: messageData.channel || 'api',
+        metadata: messageData.metadata || {}
+      })
+
+      return {
+        response: response.data.response || response.data.message,
+        messageId: response.data.id || response.data.message_id
+      }
+    } catch (error: any) {
+      console.error('Error sending message to replica:', error.response?.data || error.message)
+      throw new Error(`Failed to send message to replica: ${error.response?.data?.message || error.message}`)
+    }
+  }
+
   // Authentication helpers
   async authenticateAsUser(userId: string): Promise<AxiosInstance> {
     return axios.create({

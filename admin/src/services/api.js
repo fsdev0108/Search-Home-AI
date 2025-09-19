@@ -196,11 +196,47 @@ export const dashboardAPI = {
   }
 }
 
+// Telegram API
+export const telegramAPI = {
+  // Test bot token
+  testBot: (botToken) => apiCall('/telegram/test', {
+    method: 'POST',
+    body: JSON.stringify({ botToken })
+  }),
+
+  // Create Telegram integration
+  createIntegration: (integrationId, botToken, replicaId) => apiCall('/telegram/integrations', {
+    method: 'POST',
+    body: JSON.stringify({ integrationId, botToken, replicaId })
+  }),
+
+  // Get Telegram integration
+  getIntegration: (integrationId) => apiCall(`/telegram/integrations/${integrationId}`),
+
+  // Update Telegram integration
+  updateIntegration: (integrationId, data) => apiCall(`/telegram/integrations/${integrationId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+
+  // Activate bot (set webhook)
+  activateBot: (integrationId, webhookUrl) => apiCall(`/telegram/integrations/${integrationId}/activate`, {
+    method: 'POST',
+    body: JSON.stringify({ webhookUrl })
+  }),
+
+  // Delete Telegram integration
+  deleteIntegration: (integrationId) => apiCall(`/telegram/integrations/${integrationId}`, {
+    method: 'DELETE'
+  })
+}
+
 export default {
   integrations: integrationsAPI,
   users: usersAPI,
   replicas: replicasAPI,
   hubspot: hubspotAPI,
+  telegram: telegramAPI,
   syncLogs: syncLogsAPI,
   files: filesAPI,
   knowledgeBase: knowledgeBaseAPI,

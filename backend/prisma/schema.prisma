@@ -22,6 +22,7 @@ model IntegrationSettings {
   updatedAt      DateTime @updatedAt
 
   hubspotSettings HubSpotSettings?
+  telegramSettings TelegramSettings?
   syncLogs       SyncLog[]
   users          User[]
 
@@ -78,5 +79,20 @@ model SyncLog {
   integration    IntegrationSettings @relation(fields: [integrationId], references: [id])
 
   @@map("sync_logs")
+}
+
+model TelegramSettings {
+  id             String   @id @default(uuid())
+  integrationId  String   @unique
+  botToken       String   // Bot token from @BotFather
+  botUsername    String   // Bot username (e.g., @mycompanybot)
+  isActive       Boolean  @default(false)
+  replicaId      String?  // Connected Sensay replica ID
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  integration    IntegrationSettings @relation(fields: [integrationId], references: [id])
+
+  @@map("telegram_settings")
 }
 
