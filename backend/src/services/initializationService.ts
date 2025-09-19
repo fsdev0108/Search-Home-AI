@@ -59,11 +59,60 @@ export class InitializationService {
     }
   }
 
+  static async createDefaultUser(integration: any) {
+    try {
+      console.log('👤 Creating default user...')
+
+      // Check if user already exists
+      const existingUser = await prisma.user.findFirst({
+        where: { email: 'testUser@herainov.com' }
+      })
+
+      if (existingUser) {
+        console.log('✅ Default user already exists:', existingUser.email)
+        return existingUser
+      }
+
+      // Create user in Sensay
+      const sensayService = new SensayApiService(integration.organizationSecret)
+      const sensayUser = await sensayService.createUser({
+        email: 'testUser@herainov.com',
+        name: 'Test User'
+      })
+
+      // Save user to local database
+      const localUser = await prisma.user.create({
+        data: {
+          integrationId: integration.id,
+          sensayUserId: sensayUser.id,
+          name: sensayUser.name,
+          email: sensayUser.email
+        }
+      })
+
+      console.log('✅ Default user created successfully:')
+      console.log(`   Email: ${localUser.email}`)
+      console.log(`   Password: herainov123`)
+      console.log(`   Sensay ID: ${localUser.sensayUserId}`)
+
+      return localUser
+
+    } catch (error) {
+      console.error('❌ Error creating default user:', error)
+      return null
+    }
+  }
+
   static async initialize() {
     console.log('🚀 Starting application initialization...')
     
     // Initialize default integration
-    await this.initializeDefaultIntegration()
+    const integration = await this.initializeDefaultIntegration()
+    
+    // Create default user if integration exists
+    if (integration) {
+      await this.createDefaultUser(integration)
+    }
     
     console.log('✅ Application initialization completed')
   }

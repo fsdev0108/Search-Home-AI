@@ -50,8 +50,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       
       // Simple password validation (in production, use proper hashing)
       const validPasswords: Record<string, string> = {
-        'admin@herainov.com': 'admin123',
-        'user@herainov.com': 'user123'
+        'testUser@herainov.com': 'herainov123'
       }
       
       if (validPasswords[email] !== password) {
