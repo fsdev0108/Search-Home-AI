@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import './TelegramIntegration.css'
-import API from '../../services/api'
+import API, { API_CONFIG } from '../../services/api'
 import NoReplicas from '../NoReplicas/NoReplicas'
-import API_CONFIG from '../../config/api'
 
 const TelegramIntegration = ({ onTabChange }) => {
     const [telegramData, setTelegramData] = useState(null)

@@ -1,16 +1,26 @@
 // API Configuration - ONLY Backend calls
-const API_CONFIG = {
+export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 }
 
 // Generic API call function to backend only
 async function apiCall(endpoint, options = {}) {
   try {
+    // Get auth token from localStorage
+    const token = localStorage.getItem('authToken')
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers
+    }
+    
+    // Add Authorization header if token exists
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
+    }
+
     const response = await fetch(`${API_CONFIG.BASE_URL}/v1${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
+      headers,
       ...options
     })
 

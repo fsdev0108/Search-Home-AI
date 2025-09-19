@@ -528,6 +528,14 @@ export class SensayController {
         })
       }
 
+      // Require authentication
+      if (!user) {
+        return reply.status(401).send({
+          success: false,
+          error: 'Authentication required'
+        })
+      }
+
       const sensayService = new SensayApiService(integration.organizationSecret)
       let replicas = await sensayService.getReplicas()
 

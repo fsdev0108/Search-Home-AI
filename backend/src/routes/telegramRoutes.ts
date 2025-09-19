@@ -1,10 +1,11 @@
 import { FastifyInstance } from 'fastify'
 import { TelegramController } from '../controllers/telegramController'
+import { authMiddleware, requireUser } from '../middlewares/auth'
 
 export async function telegramRoutes(fastify: FastifyInstance) {
   
-  // Test bot token
   fastify.post('/telegram/test', {
+    preHandler: [authMiddleware, requireUser],
     schema: {
       body: {
         type: 'object',
@@ -16,8 +17,8 @@ export async function telegramRoutes(fastify: FastifyInstance) {
     }
   }, TelegramController.testBot)
 
-  // Create Telegram integration
   fastify.post('/telegram/integrations', {
+    preHandler: [authMiddleware, requireUser],
     schema: {
       body: {
         type: 'object',
@@ -31,8 +32,8 @@ export async function telegramRoutes(fastify: FastifyInstance) {
     }
   }, TelegramController.createIntegration)
 
-  // Get Telegram integration
   fastify.get('/telegram/integrations/:integrationId', {
+    preHandler: [authMiddleware, requireUser],
     schema: {
       params: {
         type: 'object',
@@ -43,8 +44,8 @@ export async function telegramRoutes(fastify: FastifyInstance) {
     }
   }, TelegramController.getIntegration)
 
-  // Update Telegram integration
   fastify.put('/telegram/integrations/:integrationId', {
+    preHandler: [authMiddleware, requireUser],
     schema: {
       params: {
         type: 'object',
@@ -62,8 +63,8 @@ export async function telegramRoutes(fastify: FastifyInstance) {
     }
   }, TelegramController.updateIntegration)
 
-  // Activate bot (set webhook)
   fastify.post('/telegram/integrations/:integrationId/activate', {
+    preHandler: [authMiddleware, requireUser],
     schema: {
       params: {
         type: 'object',
@@ -81,8 +82,8 @@ export async function telegramRoutes(fastify: FastifyInstance) {
     }
   }, TelegramController.activateBot)
 
-  // Delete Telegram integration
   fastify.delete('/telegram/integrations/:integrationId', {
+    preHandler: [authMiddleware, requireUser],
     schema: {
       params: {
         type: 'object',
@@ -93,7 +94,6 @@ export async function telegramRoutes(fastify: FastifyInstance) {
     }
   }, TelegramController.deleteIntegration)
 
-  // Webhook endpoint for Telegram (public, no auth)
   fastify.post('/telegram/webhook/:botToken', {
     schema: {
       params: {

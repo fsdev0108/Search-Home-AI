@@ -64,8 +64,17 @@ export async function authRoutes(fastify: FastifyInstance) {
       // In production, this should be stored in the database
       const role = email.includes('admin') ? 'admin' : 'user'
 
-      // Generate simple token (in production, use JWT)
-      const token = 'token-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)
+      // Generate JWT token
+      const jwt = require('jsonwebtoken')
+      const secret = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+      
+      const payload = {
+        userId: dbUser.sensayUserId,
+        email: dbUser.email,
+        role: role
+      }
+      
+      const token = jwt.sign(payload, secret, { expiresIn: '24h' })
 
       return reply.send({
         success: true,
