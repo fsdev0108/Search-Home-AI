@@ -3,12 +3,14 @@ export const config = {
   host: process.env.HOST || '0.0.0.0',
   nodeEnv: process.env.NODE_ENV || 'development',
   cors: {
-    origin: process.env.CORS_ORIGIN 
-      ? process.env.CORS_ORIGIN.split(',') 
-      : true, // Permite qualquer origem
+    origin: process.env.NODE_ENV === 'production' 
+      ? true 
+      : process.env.CORS_ORIGIN 
+        ? process.env.CORS_ORIGIN.split(',') 
+        : true,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept']
   },
   api: {
     prefix: '/api/v1'
