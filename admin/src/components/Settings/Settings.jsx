@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { integrationsAPI, hubspotAPI, replicasAPI } from '../../services/api'
 import './Settings.css'
+import NoReplicas from '../NoReplicas/NoReplicas'
 
-const Settings = () => {
+const Settings = ({ onTabChange }) => {
     const [integrations, setIntegrations] = useState([])
     const [currentIntegration, setCurrentIntegration] = useState(null)
     const [hubspotApiKey, setHubspotApiKey] = useState('')
@@ -218,6 +219,11 @@ const Settings = () => {
         setIsConnecting(true)
         await syncHubSpotData()
         setIsConnecting(false)
+    }
+
+    // Check if no replicas exist
+    if (replicas.length === 0) {
+        return <NoReplicas onNavigateToReplicas={() => onTabChange('replicas')} />
     }
 
     return (

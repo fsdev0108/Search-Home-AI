@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import './TelegramIntegration.css'
 import API from '../../services/api'
+import NoReplicas from '../NoReplicas/NoReplicas'
 
-const TelegramIntegration = ({ integrationId }) => {
+const TelegramIntegration = ({ integrationId, onTabChange }) => {
     const [telegramData, setTelegramData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -163,6 +164,11 @@ const TelegramIntegration = ({ integrationId }) => {
 
     if (loading) {
         return <div className="telegram-loading">Loading Telegram integration...</div>
+    }
+
+    // Check if no replicas exist
+    if (replicas.length === 0) {
+        return <NoReplicas onNavigateToReplicas={() => onTabChange('replicas')} />
     }
 
     return (

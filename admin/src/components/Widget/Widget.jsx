@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { replicasAPI, integrationsAPI } from '../../services/api'
 import './Widget.css'
+import NoReplicas from '../NoReplicas/NoReplicas'
 
-const Widget = () => {
+const Widget = ({ onTabChange }) => {
     const [replicas, setReplicas] = useState([])
     const [currentIntegration, setCurrentIntegration] = useState(null)
     const [selectedReplica, setSelectedReplica] = useState(null)
@@ -105,6 +106,11 @@ const Widget = () => {
                 <p>Loading widget generator...</p>
             </div>
         )
+    }
+
+    // Check if no replicas exist
+    if (replicas.length === 0) {
+        return <NoReplicas onNavigateToReplicas={() => onTabChange('replicas')} />
     }
 
     return (

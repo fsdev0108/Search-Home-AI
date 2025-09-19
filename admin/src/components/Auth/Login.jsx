@@ -69,7 +69,7 @@ const Login = ({ onLogin }) => {
                             value={formData.email}
                             onChange={handleInputChange}
                             required
-                            placeholder="admin@herainov.com"
+                            placeholder="Enter your email"
                             disabled={loading}
                         />
                     </div>
@@ -83,17 +83,10 @@ const Login = ({ onLogin }) => {
                             value={formData.password}
                             onChange={handleInputChange}
                             required
-                            placeholder="admin123"
+                            placeholder="Enter your password"
                             disabled={loading}
                         />
                     </div>
-
-                    <div className="login-info">
-                        <h4>Test Credentials:</h4>
-                        <p><strong>Admin:</strong> admin@herainov.com / admin123</p>
-                        <p><strong>User:</strong> user@herainov.com / user123</p>
-                    </div>
-
                     <button
                         type="submit"
                         className="btn btn-primary auth-submit"
@@ -102,13 +95,6 @@ const Login = ({ onLogin }) => {
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
                 </form>
-
-                <div className="auth-footer">
-                    <p>Available credentials:</p>
-                    <p><strong>Admin:</strong> admin@sensay.com / admin123</p>
-                    <p><strong>User:</strong> user@sensay.com / user123</p>
-                    <p><small>Login simulado - sem API</small></p>
-                </div>
             </div>
         </div>
     )
