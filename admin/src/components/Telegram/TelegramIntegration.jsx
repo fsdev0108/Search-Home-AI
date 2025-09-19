@@ -56,10 +56,11 @@ const TelegramIntegration = ({ onTabChange }) => {
         try {
             const response = await API.telegram.getIntegration(integrationId)
             if (response.success) {
-                setTelegramData(response.data)
+                const telegramData = response.data.data || response.data
+                setTelegramData(telegramData)
                 setFormData({
-                    botToken: '••••••••••', // Hide token for security
-                    replicaId: response.data.replicaId || ''
+                    botToken: '••••••••••',
+                    replicaId: telegramData.replicaId || ''
                 })
             }
         } catch (error) {
