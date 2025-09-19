@@ -13,7 +13,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "railway:build": "npm run build",
-    "railway:start": "npm run db:migrate && npm start",
+    "railway:start": "prisma migrate deploy && npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

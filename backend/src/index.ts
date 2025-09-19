@@ -33,12 +33,18 @@ fastify.get('/', async (request, reply) => {
 
 async function start() {
   try {
-    // Initialize default integration
-    await InitializationService.initialize()
-    
     await registerRoutes(fastify)
     await fastify.listen({ port: Number(config.port), host: config.host })
     console.log(`Server running on http://${config.host}:${config.port}`)
+
+    // Initialize after server is running (non-blocking)
+    setTimeout(async () => {
+      try {
+        await InitializationService.initialize()
+      } catch (err: any) {
+        console.log('⚠️ Initialization failed, but server is running:', err.message)
+      }
+    }, 1000)
 
     // Graceful shutdown
     process.on('SIGINT', () => {
