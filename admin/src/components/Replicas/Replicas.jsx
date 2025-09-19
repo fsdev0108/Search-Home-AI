@@ -54,16 +54,8 @@ const Replicas = () => {
         setUsers(usersResponse.data || [])
       }
 
-      // Load replicas
       const replicasResponse = await replicasAPI.getAll(integration.id)
-      let allReplicas = replicasResponse.data || []
-
-      // Filter replicas based on user role
-      if (!isAdmin) {
-        // For regular users, only show replicas they own
-        const currentUserId = currentUser.id || currentUser.sensayUserId
-        allReplicas = allReplicas.filter(replica => replica.ownerID === currentUserId)
-      }
+      const allReplicas = replicasResponse.data || []
 
       setReplicas(allReplicas)
     } catch (error) {
@@ -78,16 +70,8 @@ const Replicas = () => {
     if (!currentIntegration) return
 
     try {
-      // Load replicas
       const replicasResponse = await replicasAPI.getAll(currentIntegration.id)
-      let allReplicas = replicasResponse.data || []
-
-      // Filter replicas based on user role
-      if (!isAdmin) {
-        // For regular users, only show replicas they own
-        const currentUserId = currentUser.id || currentUser.sensayUserId
-        allReplicas = allReplicas.filter(replica => replica.ownerID === currentUserId)
-      }
+      const allReplicas = replicasResponse.data || []
 
       setReplicas(allReplicas)
     } catch (error) {

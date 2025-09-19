@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import './TelegramIntegration.css'
 import API from '../../services/api'
 import NoReplicas from '../NoReplicas/NoReplicas'
+import API_CONFIG from '../../config/api'
 
 const TelegramIntegration = ({ onTabChange }) => {
     const [telegramData, setTelegramData] = useState(null)
@@ -92,8 +93,9 @@ const TelegramIntegration = ({ onTabChange }) => {
             const response = await API.telegram.testBot(formData.botToken)
 
             if (response.success) {
-                setBotInfo(response.data)
-                setSuccess('Valid token! Bot found: @' + response.data.username)
+                const botData = response.data.data || response.data
+                setBotInfo(botData)
+                setSuccess('Valid token! Bot found: @' + botData.username)
             } else {
                 setError(response.error || 'Invalid token')
             }
@@ -128,6 +130,20 @@ const TelegramIntegration = ({ onTabChange }) => {
             if (response.success) {
                 setSuccess('Telegram integration created successfully!')
                 await loadTelegramIntegration(currentIntegration.id)
+
+                // Automatically activate the bot after creation
+                try {
+                    const webhookUrl = `${API_CONFIG.BASE_URL}/api/v1/telegram/webhook/${formData.botToken}`
+                    const activateResponse = await API.telegram.activateBot(currentIntegration.id, webhookUrl)
+
+                    if (activateResponse.success) {
+                        setSuccess('Telegram integration created and activated successfully!')
+                        await loadTelegramIntegration(currentIntegration.id)
+                    }
+                } catch (activateError) {
+                    console.error('Error auto-activating bot:', activateError)
+                    // Don't show error, integration was created successfully
+                }
             } else {
                 setError(response.error || 'Error creating integration')
             }
@@ -144,7 +160,7 @@ const TelegramIntegration = ({ onTabChange }) => {
         setActivating(true)
         setError('')
 
-        const webhookUrl = `${window.location.origin.replace(':5173', ':3000')}/api/v1/telegram/webhook/${telegramData.botToken || formData.botToken}`
+        const webhookUrl = `${API_CONFIG.BASE_URL}/api/v1/telegram/webhook/${telegramData.botToken || formData.botToken}`
 
         try {
             const response = await API.telegram.activateBot(currentIntegration.id, webhookUrl)
@@ -162,32 +178,6 @@ const TelegramIntegration = ({ onTabChange }) => {
         }
     }
 
-    const updateIntegration = async () => {
-        if (!formData.replicaId) {
-            setError('Please select a replica')
-            return
-        }
-
-        setSaving(true)
-        setError('')
-
-        try {
-            const response = await API.telegram.updateIntegration(currentIntegration.id, {
-                replicaId: formData.replicaId
-            })
-
-            if (response.success) {
-                setSuccess('Integration updated successfully!')
-                await loadTelegramIntegration(currentIntegration.id)
-            } else {
-                setError(response.error || 'Error updating integration')
-            }
-        } catch (error) {
-            setError('Error updating: ' + error.message)
-        } finally {
-            setSaving(false)
-        }
-    }
 
     if (loading) {
         return <div className="telegram-loading">Loading Telegram integration...</div>
@@ -312,33 +302,16 @@ const TelegramIntegration = ({ onTabChange }) => {
                     </div>
 
                     <div className="telegram-config">
-                        <h3>⚙️ Settings</h3>
-                        <div className="telegram-form-group">
-                            <label>Connected replica:</label>
-                            <select
-                                value={formData.replicaId}
-                                onChange={(e) => setFormData({ ...formData, replicaId: e.target.value })}
-                                className="telegram-select"
-                            >
-                                <option value="">Select a replica...</option>
-                                {replicas.map(replica => (
-                                    <option key={replica.id} value={replica.id}>
-                                        {replica.name}
-                                    </option>
-                                ))}
-                            </select>
+                        <h3>⚙️ Configuration</h3>
+                        <div className="telegram-status-item">
+                            <span className="telegram-status-label">Connected Replica:</span>
+                            <span className="telegram-status-value">
+                                {replicas.find(r => r.id === telegramData.replicaId)?.name || 'Unknown'}
+                            </span>
                         </div>
 
-                        <div className="telegram-actions">
-                            <button
-                                onClick={updateIntegration}
-                                disabled={saving}
-                                className="telegram-btn telegram-btn-secondary"
-                            >
-                                {saving ? 'Saving...' : 'Update'}
-                            </button>
-
-                            {!telegramData.isActive && (
+                        {!telegramData.isActive && (
+                            <div className="telegram-actions">
                                 <button
                                     onClick={activateBot}
                                     disabled={activating}
@@ -346,8 +319,8 @@ const TelegramIntegration = ({ onTabChange }) => {
                                 >
                                     {activating ? 'Activating...' : 'Activate Bot'}
                                 </button>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
 
                     {telegramData.isActive && (

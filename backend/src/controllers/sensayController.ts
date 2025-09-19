@@ -515,6 +515,7 @@ export class SensayController {
   async getReplicas(request: FastifyRequest, reply: FastifyReply) {
     try {
       const { integrationId } = request.params as { integrationId: string }
+      const user = (request as any).user
 
       const integration = await prisma.integrationSettings.findUnique({
         where: { id: integrationId }
@@ -528,7 +529,16 @@ export class SensayController {
       }
 
       const sensayService = new SensayApiService(integration.organizationSecret)
-      const replicas = await sensayService.getReplicas()
+      let replicas = await sensayService.getReplicas()
+
+      // Filter replicas based on user role
+      if (user.role !== 'admin') {
+        // For regular users, only show replicas they own
+        const currentUserId = user.id
+        replicas = replicas.filter(replica => 
+          replica.owner_uuid === currentUserId || replica.ownerID === currentUserId
+        )
+      }
 
       return reply.send({
         success: true,

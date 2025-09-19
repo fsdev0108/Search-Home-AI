@@ -53,17 +53,38 @@ export class TelegramService {
   // Process incoming message from Telegram
   async processMessage(update: any): Promise<void> {
     try {
+      console.log('📱 Received Telegram update:', JSON.stringify(update, null, 2))
+
       const message = update.message
-      if (!message || !message.text) return
+      if (!message || !message.text) {
+        console.log('⚠️ No message or text found in update')
+        return
+      }
 
       const chatId = message.chat.id.toString()
       const userId = message.from?.id?.toString()
       const messageText = message.text
       const messageId = message.message_id
 
-      console.log(`📱 Telegram message from ${userId}: ${messageText}`)
+      console.log(`📱 Telegram message from ${userId} (${message.from?.first_name}): ${messageText}`)
+
+      // Handle special commands
+      if (messageText === '/start') {
+        const welcomeMessage = "👋 Hello! I'm your real estate assistant. Ask me anything about properties, locations, or real estate services!"
+        await this.sendMessage(chatId, welcomeMessage, messageId)
+        console.log(`✅ Welcome message sent to chat ${chatId}`)
+        return
+      }
+
+      // Check if replicaId is configured
+      if (!this.replicaId) {
+        console.error('❌ No replica ID configured for this bot')
+        await this.sendMessage(chatId, "I'm sorry, but I'm not properly configured yet. Please contact support.", messageId)
+        return
+      }
 
       // Send to Sensay for processing
+      console.log(`🤖 Sending to Sensay replica ${this.replicaId}:`, messageText)
       const sensayResponse = await this.sensayService.sendMessage(this.replicaId, {
         message: messageText,
         userId: userId || chatId,
@@ -77,14 +98,31 @@ export class TelegramService {
         }
       })
 
+      console.log('🤖 Sensay response:', sensayResponse)
+
       // Send response back to Telegram
       if (sensayResponse?.response) {
         await this.sendMessage(chatId, sensayResponse.response, messageId)
         console.log(`✅ Response sent to Telegram chat ${chatId}`)
+      } else {
+        console.log('⚠️ No response from Sensay')
+        await this.sendMessage(chatId, "I'm sorry, I couldn't process your message right now. Please try again later.", messageId)
       }
 
     } catch (error) {
       console.error('Error processing Telegram message:', error)
+      
+      // Try to send error message to user
+      try {
+        const message = update.message
+        if (message) {
+          const chatId = message.chat.id.toString()
+          const messageId = message.message_id
+          await this.sendMessage(chatId, "I'm experiencing technical difficulties. Please try again later.", messageId)
+        }
+      } catch (sendError) {
+        console.error('Failed to send error message:', sendError)
+      }
     }
   }
 
