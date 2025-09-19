@@ -74,6 +74,28 @@ const Replicas = () => {
     }
   }
 
+  const loadReplicas = async () => {
+    if (!currentIntegration) return
+
+    try {
+      // Load replicas
+      const replicasResponse = await replicasAPI.getAll(currentIntegration.id)
+      let allReplicas = replicasResponse.data || []
+
+      // Filter replicas based on user role
+      if (!isAdmin) {
+        // For regular users, only show replicas they own
+        const currentUserId = currentUser.id || currentUser.sensayUserId
+        allReplicas = allReplicas.filter(replica => replica.ownerID === currentUserId)
+      }
+
+      setReplicas(allReplicas)
+    } catch (error) {
+      console.error('Error loading replicas:', error)
+      setError('Failed to load replicas. Please try again.')
+    }
+  }
+
   const toggleReplicaExpansion = async (replica) => {
     if (expandedReplica?.uuid === replica.uuid) {
       // Collapse
@@ -208,10 +230,10 @@ const Replicas = () => {
       }
 
       // Create replica via API
-      const newReplica = await replicasAPI.create(currentIntegration.id, replicaData)
+      await replicasAPI.create(currentIntegration.id, replicaData)
 
-      // Add to local state
-      setReplicas(prev => [...prev, newReplica])
+      // Reload replicas from backend to get complete data
+      await loadReplicas()
 
       // Reset form and close modal
       setFormData({

@@ -48,7 +48,7 @@ function App() {
       case 'replicas':
         return <Replicas />
       case 'telegram':
-        return <TelegramIntegration integrationId={user.integrationId} onTabChange={setCurrentTab} />
+        return <TelegramIntegration onTabChange={setCurrentTab} />
       case 'widget':
         return <Widget onTabChange={setCurrentTab} />
       case 'settings':

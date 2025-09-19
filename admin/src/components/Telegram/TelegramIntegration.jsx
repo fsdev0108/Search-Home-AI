@@ -3,8 +3,9 @@ import './TelegramIntegration.css'
 import API from '../../services/api'
 import NoReplicas from '../NoReplicas/NoReplicas'
 
-const TelegramIntegration = ({ integrationId, onTabChange }) => {
+const TelegramIntegration = ({ onTabChange }) => {
     const [telegramData, setTelegramData] = useState(null)
+    const [currentIntegration, setCurrentIntegration] = useState(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [testing, setTesting] = useState(false)
@@ -19,11 +20,39 @@ const TelegramIntegration = ({ integrationId, onTabChange }) => {
     const [success, setSuccess] = useState('')
 
     useEffect(() => {
-        loadTelegramIntegration()
-        loadReplicas()
-    }, [integrationId])
+        loadIntegrationAndData()
+    }, [])
 
-    const loadTelegramIntegration = async () => {
+    const loadIntegrationAndData = async () => {
+        try {
+            setLoading(true)
+            setError('')
+
+            // Get integration
+            const integrationsResponse = await API.integrations.getAll()
+
+            if (!integrationsResponse || !integrationsResponse.data || integrationsResponse.data.length === 0) {
+                setError('No integration found. Please create an integration in Settings first.')
+                return
+            }
+
+            const integration = integrationsResponse.data[0]
+            setCurrentIntegration(integration)
+
+            // Load Telegram integration data
+            await loadTelegramIntegration(integration.id)
+            // Load replicas
+            await loadReplicas(integration.id)
+
+        } catch (error) {
+            console.error('Error loading integration and data:', error)
+            setError('Failed to load data. Please try again.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const loadTelegramIntegration = async (integrationId) => {
         try {
             const response = await API.telegram.getIntegration(integrationId)
             if (response.success) {
@@ -35,12 +64,10 @@ const TelegramIntegration = ({ integrationId, onTabChange }) => {
             }
         } catch (error) {
             console.error('Error loading Telegram integration:', error)
-        } finally {
-            setLoading(false)
         }
     }
 
-    const loadReplicas = async () => {
+    const loadReplicas = async (integrationId) => {
         try {
             const response = await API.replicas.getAll(integrationId)
             if (response.success) {
@@ -93,14 +120,14 @@ const TelegramIntegration = ({ integrationId, onTabChange }) => {
 
         try {
             const response = await API.telegram.createIntegration(
-                integrationId,
+                currentIntegration.id,
                 formData.botToken,
                 formData.replicaId
             )
 
             if (response.success) {
                 setSuccess('Telegram integration created successfully!')
-                await loadTelegramIntegration()
+                await loadTelegramIntegration(currentIntegration.id)
             } else {
                 setError(response.error || 'Error creating integration')
             }
@@ -120,11 +147,11 @@ const TelegramIntegration = ({ integrationId, onTabChange }) => {
         const webhookUrl = `${window.location.origin.replace(':5173', ':3000')}/api/v1/telegram/webhook/${telegramData.botToken || formData.botToken}`
 
         try {
-            const response = await API.telegram.activateBot(integrationId, webhookUrl)
+            const response = await API.telegram.activateBot(currentIntegration.id, webhookUrl)
 
             if (response.success) {
                 setSuccess('Bot activated successfully! Your bot is now receiving messages.')
-                await loadTelegramIntegration()
+                await loadTelegramIntegration(currentIntegration.id)
             } else {
                 setError(response.error || 'Error activating bot')
             }
@@ -145,13 +172,13 @@ const TelegramIntegration = ({ integrationId, onTabChange }) => {
         setError('')
 
         try {
-            const response = await API.telegram.updateIntegration(integrationId, {
+            const response = await API.telegram.updateIntegration(currentIntegration.id, {
                 replicaId: formData.replicaId
             })
 
             if (response.success) {
                 setSuccess('Integration updated successfully!')
-                await loadTelegramIntegration()
+                await loadTelegramIntegration(currentIntegration.id)
             } else {
                 setError(response.error || 'Error updating integration')
             }
