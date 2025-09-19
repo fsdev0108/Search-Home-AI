@@ -13,8 +13,15 @@ const fastify = Fastify({
   logger: true
 })
 
-fastify.register(cors, config.cors)
-fastify.register(helmet)
+fastify.register(cors, {
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept']
+})
+fastify.register(helmet, {
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+})
 fastify.register(multipart, {
   limits: {
     fileSize: config.upload.maxFileSize
