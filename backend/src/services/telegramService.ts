@@ -11,8 +11,12 @@ export class TelegramService {
 
   constructor(botToken: string, organizationSecret: string, replicaId: string) {
     this.botToken = botToken
-    this.sensayService = new SensayApiService(organizationSecret)
+    // ALWAYS use environment variable for organization secret
+    const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET || organizationSecret
+    this.sensayService = new SensayApiService(envOrgSecret)
     this.replicaId = replicaId
+    
+    console.log(`🔧 TelegramService using org secret: ${envOrgSecret.substring(0, 8)}...`)
   }
 
   // Setup webhook for bot
