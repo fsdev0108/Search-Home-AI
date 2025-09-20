@@ -135,7 +135,7 @@ const TelegramIntegration = ({ onTabChange }) => {
 
                 // Automatically activate the bot after creation
                 try {
-                    const webhookUrl = `${API_CONFIG.BASE_URL}/api/v1/telegram/webhook/${formData.botToken}`
+                    const webhookUrl = `${API_CONFIG.BASE_URL}/v1/telegram/webhook/${formData.botToken}`
                     const activateResponse = await API.telegram.activateBot(currentIntegration.id, webhookUrl)
 
                     if (activateResponse.success) {
@@ -162,7 +162,7 @@ const TelegramIntegration = ({ onTabChange }) => {
         setActivating(true)
         setError('')
 
-        const webhookUrl = `${API_CONFIG.BASE_URL}/api/v1/telegram/webhook/${telegramData.botToken || formData.botToken}`
+        const webhookUrl = `${API_CONFIG.BASE_URL}/v1/telegram/webhook/${telegramData.botToken || formData.botToken}`
 
         try {
             const response = await API.telegram.activateBot(currentIntegration.id, webhookUrl)
@@ -255,7 +255,7 @@ const TelegramIntegration = ({ onTabChange }) => {
                 // Automatically activate the bot after reconfiguration (if bot token was updated)
                 if (formData.botToken.trim()) {
                     try {
-                        const webhookUrl = `${API_CONFIG.BASE_URL}/api/v1/telegram/webhook/${formData.botToken}`
+                        const webhookUrl = `${API_CONFIG.BASE_URL}/v1/telegram/webhook/${formData.botToken}`
                         const activateResponse = await API.telegram.activateBot(currentIntegration.id, webhookUrl)
 
                         if (activateResponse.success) {
