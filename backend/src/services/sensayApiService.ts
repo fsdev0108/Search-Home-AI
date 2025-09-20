@@ -345,10 +345,16 @@ export class SensayApiService {
         skip_chat_history: false
       }
       
-      // Use replica owner ID for authentication (dynamic)
+      // ALWAYS use replica owner ID for authentication - regardless of channel
       const headers = {
-        'X-USER-ID': messageData.replicaOwnerID || messageData.userId
+        'X-USER-ID': messageData.replicaOwnerID
       }
+      
+      if (!messageData.replicaOwnerID) {
+        throw new Error('Replica owner ID is required for authentication')
+      }
+      
+      console.log(`👤 Using replica owner authentication: ${messageData.replicaOwnerID}`)
       
       console.log(`📤 Using endpoint: /replicas/${replicaId}/chat/completions`)
       console.log(`📤 Payload:`, payload)
