@@ -14,6 +14,8 @@
     "db:studio": "prisma studio",
     "railway:build": "npm run build",
     "railway:start": "prisma migrate deploy && npm start",
+    "resolve:migration": "node scripts/resolve-migration.js",
+    "railway:fix": "npm run resolve:migration && npm run railway:start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
