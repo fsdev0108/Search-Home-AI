@@ -34,7 +34,7 @@ export async function twilioRoutes(fastify: FastifyInstance) {
     }
   }, TwilioController.createIntegration)
 
-  fastify.post('/twilio/integrations/:integrationId/activate', {
+  fastify.get('/twilio/integrations/:integrationId/activate', {
     preHandler: [authMiddleware, requireUser],
     schema: {
       params: {

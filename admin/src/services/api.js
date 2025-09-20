@@ -261,7 +261,7 @@ export const twilioAPI = {
   }),
 
   activateIntegration: (integrationId) => apiCall(`/twilio/integrations/${integrationId}/activate`, {
-    method: 'POST'
+    method: 'GET'
   }),
 
   deleteIntegration: (integrationId) => apiCall(`/twilio/integrations/${integrationId}`, {
