@@ -18,6 +18,8 @@ const TelegramIntegration = ({ onTabChange }) => {
     const [botInfo, setBotInfo] = useState(null)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
+    const [deleting, setDeleting] = useState(false)
+    const [showReconfigure, setShowReconfigure] = useState(false)
 
     useEffect(() => {
         loadIntegrationAndData()
@@ -178,6 +180,104 @@ const TelegramIntegration = ({ onTabChange }) => {
         }
     }
 
+    const deleteIntegration = async () => {
+        if (!window.confirm('Are you sure you want to delete this Telegram integration? This action cannot be undone.')) {
+            return
+        }
+
+        try {
+            setDeleting(true)
+            setError('')
+            setSuccess('')
+
+            const response = await API.telegram.deleteIntegration(currentIntegration.id)
+
+            if (response.success) {
+                setSuccess('Telegram integration deleted successfully!')
+                setTelegramData(null)
+                setBotInfo(null)
+                setFormData({ botToken: '', replicaId: '' })
+            } else {
+                setError(response.error || 'Failed to delete integration')
+            }
+        } catch (error) {
+            console.error('Error deleting integration:', error)
+            setError('Failed to delete integration')
+        } finally {
+            setDeleting(false)
+        }
+    }
+
+    const startReconfigure = () => {
+        setShowReconfigure(true)
+        setFormData({
+            botToken: '',
+            replicaId: telegramData.replicaId || ''
+        })
+        setBotInfo(null)
+        setError('')
+        setSuccess('')
+    }
+
+    const cancelReconfigure = () => {
+        setShowReconfigure(false)
+        setFormData({ botToken: '', replicaId: '' })
+        setBotInfo(null)
+        setError('')
+        setSuccess('')
+    }
+
+    const saveReconfiguration = async () => {
+        try {
+            setSaving(true)
+            setError('')
+            setSuccess('')
+
+            if (!formData.replicaId) {
+                setError('Please select a replica')
+                return
+            }
+
+            // Prepare update data - only include botToken if provided
+            const updateData = { replicaId: formData.replicaId }
+            if (formData.botToken.trim()) {
+                updateData.botToken = formData.botToken
+            }
+
+            // Update the integration
+            const response = await API.telegram.updateIntegration(currentIntegration.id, updateData)
+
+            if (response.success) {
+                setSuccess('Telegram integration updated successfully!')
+                await loadTelegramIntegration(currentIntegration.id)
+                setShowReconfigure(false)
+
+                // Automatically activate the bot after reconfiguration (if bot token was updated)
+                if (formData.botToken.trim()) {
+                    try {
+                        const webhookUrl = `${API_CONFIG.BASE_URL}/api/v1/telegram/webhook/${formData.botToken}`
+                        const activateResponse = await API.telegram.activateBot(currentIntegration.id, webhookUrl)
+
+                        if (activateResponse.success) {
+                            setSuccess('Telegram integration updated and activated successfully!')
+                            await loadTelegramIntegration(currentIntegration.id)
+                        }
+                    } catch (activateError) {
+                        console.error('Error auto-activating bot:', activateError)
+                        setSuccess('Telegram integration updated! Please activate manually if needed.')
+                    }
+                }
+            } else {
+                setError(response.error || 'Failed to update integration')
+            }
+        } catch (error) {
+            console.error('Error updating integration:', error)
+            setError('Failed to update integration')
+        } finally {
+            setSaving(false)
+        }
+    }
+
 
     if (loading) {
         return <div className="telegram-loading">Loading Telegram integration...</div>
@@ -279,6 +379,86 @@ const TelegramIntegration = ({ onTabChange }) => {
                         {saving ? 'Saving...' : 'Create Integration'}
                     </button>
                 </div>
+            ) : showReconfigure ? (
+                // Reconfiguração
+                <div className="telegram-reconfigure">
+                    <div className="telegram-header">
+                        <h3>🔧 Reconfigure Telegram Bot</h3>
+                        <p>Update your bot token or change the connected replica</p>
+                    </div>
+
+                    <div className="telegram-step">
+                        <h3>🤖 Step 1: Enter New Bot Token (Optional)</h3>
+                        <p>Leave empty to keep the current bot, or enter a new token to change the bot</p>
+                        <div className="telegram-form-group">
+                            <input
+                                type="password"
+                                placeholder="Enter new bot token or leave empty..."
+                                value={formData.botToken}
+                                onChange={(e) => setFormData({ ...formData, botToken: e.target.value })}
+                                className="telegram-input"
+                            />
+                        </div>
+
+                        {formData.botToken && (
+                            <div className="telegram-form-group">
+                                <button
+                                    onClick={testBotToken}
+                                    disabled={testing}
+                                    className="telegram-btn telegram-btn-secondary"
+                                >
+                                    {testing ? 'Testing...' : 'Test New Token'}
+                                </button>
+                            </div>
+                        )}
+
+                        {botInfo && (
+                            <div className="telegram-bot-info">
+                                <h4>✅ New Bot Found:</h4>
+                                <p><strong>Name:</strong> {botInfo.firstName}</p>
+                                <p><strong>Username:</strong> @{botInfo.username}</p>
+                                <p><strong>ID:</strong> {botInfo.id}</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="telegram-step">
+                        <h3>🤖 Step 2: Select Replica</h3>
+                        <div className="telegram-form-group">
+                            <label>Replica that will respond on Telegram:</label>
+                            <select
+                                value={formData.replicaId}
+                                onChange={(e) => setFormData({ ...formData, replicaId: e.target.value })}
+                                className="telegram-select"
+                            >
+                                <option value="">Select a replica...</option>
+                                {replicas.map(replica => (
+                                    <option key={replica.id} value={replica.id}>
+                                        {replica.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="telegram-actions">
+                        <button
+                            onClick={saveReconfiguration}
+                            disabled={saving || !formData.replicaId}
+                            className="telegram-btn telegram-btn-primary"
+                        >
+                            {saving ? 'Updating...' : 'Update Configuration'}
+                        </button>
+
+                        <button
+                            onClick={cancelReconfigure}
+                            disabled={saving}
+                            className="telegram-btn telegram-btn-secondary"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
             ) : (
                 // Integração existente
                 <div className="telegram-existing">
@@ -310,8 +490,8 @@ const TelegramIntegration = ({ onTabChange }) => {
                             </span>
                         </div>
 
-                        {!telegramData.isActive && (
-                            <div className="telegram-actions">
+                        <div className="telegram-actions">
+                            {!telegramData.isActive && (
                                 <button
                                     onClick={activateBot}
                                     disabled={activating}
@@ -319,8 +499,24 @@ const TelegramIntegration = ({ onTabChange }) => {
                                 >
                                     {activating ? 'Activating...' : 'Activate Bot'}
                                 </button>
-                            </div>
-                        )}
+                            )}
+
+                            <button
+                                onClick={startReconfigure}
+                                disabled={activating || deleting}
+                                className="telegram-btn telegram-btn-secondary"
+                            >
+                                🔧 Reconfigure
+                            </button>
+
+                            <button
+                                onClick={deleteIntegration}
+                                disabled={activating || deleting}
+                                className="telegram-btn telegram-btn-danger"
+                            >
+                                {deleting ? 'Deleting...' : '🗑️ Delete'}
+                            </button>
+                        </div>
                     </div>
 
                     {telegramData.isActive && (

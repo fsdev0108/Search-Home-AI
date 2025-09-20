@@ -160,6 +160,16 @@
     transform: translateY(-2px);
 }
 
+.telegram-btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.telegram-btn-danger:hover:not(:disabled) {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
 .telegram-btn-test {
     background: #28a745;
     color: white;
@@ -250,6 +260,13 @@
     display: flex;
     gap: 15px;
     margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.telegram-actions .telegram-btn {
+    flex: 1;
+    min-width: 140px;
+    max-width: 200px;
 }
 
 .telegram-instructions {
