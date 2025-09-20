@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { sensayRoutes } from './sensayRoutes'
 import { authRoutes } from './authRoutes'
 import { telegramRoutes } from './telegramRoutes'
+import { twilioRoutes } from './twilioRoutes'
 import { config } from '../config'
 
 export async function registerRoutes(fastify: FastifyInstance) {
@@ -13,4 +14,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
 
   // Telegram integration routes
   fastify.register(telegramRoutes, { prefix: config.api.prefix })
+
+  // Twilio integration routes
+  fastify.register(twilioRoutes, { prefix: config.api.prefix })
 }

@@ -23,6 +23,7 @@ model IntegrationSettings {
 
   hubspotSettings HubSpotSettings?
   telegramSettings TelegramSettings?
+  twilioSettings TwilioSettings?
   syncLogs       SyncLog[]
   users          User[]
 
@@ -94,5 +95,21 @@ model TelegramSettings {
   integration    IntegrationSettings @relation(fields: [integrationId], references: [id])
 
   @@map("telegram_settings")
+}
+
+model TwilioSettings {
+  id             String   @id @default(uuid())
+  integrationId  String   @unique
+  accountSid     String   // Twilio Account SID
+  authToken      String   // Twilio Auth Token
+  phoneNumber    String   // WhatsApp Business number
+  isActive       Boolean  @default(false)
+  replicaId      String?  // Connected Sensay replica ID
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  integration    IntegrationSettings @relation(fields: [integrationId], references: [id])
+
+  @@map("twilio_settings")
 }
 
