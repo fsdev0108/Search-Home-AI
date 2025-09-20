@@ -6,14 +6,27 @@ async function resolveMigration() {
   try {
     console.log('🔧 Resolving failed migration...')
     
-    // Mark the failed migration as resolved
-    await prisma.$executeRaw`
-      UPDATE "_prisma_migrations" 
-      SET "finished_at" = NOW(), "logs" = 'Resolved manually' 
+    // Check if migration table exists and has the failed migration
+    const failedMigration = await prisma.$queryRaw`
+      SELECT * FROM "_prisma_migrations" 
       WHERE "migration_name" = '20250920160000_init_postgresql'
+      AND "finished_at" IS NULL
     `
     
-    console.log('✅ Migration marked as resolved')
+    if (failedMigration.length > 0) {
+      console.log('📋 Found failed migration, marking as resolved...')
+      
+      // Mark the failed migration as resolved
+      await prisma.$executeRaw`
+        UPDATE "_prisma_migrations" 
+        SET "finished_at" = NOW(), "logs" = 'Resolved manually' 
+        WHERE "migration_name" = '20250920160000_init_postgresql'
+      `
+      
+      console.log('✅ Migration marked as resolved')
+    } else {
+      console.log('✅ No failed migration found')
+    }
     
     // Check if twilio_settings table exists
     const tableExists = await prisma.$queryRaw`
