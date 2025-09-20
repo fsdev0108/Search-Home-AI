@@ -122,13 +122,8 @@ export class TwilioService {
       }
 
       const replicas = await this.sensayService.getReplicas()
-      const replica = replicas.find(r => r.id === this.replicaId)
-      
-      if (!replica) {
-        return "I'm not properly configured yet. Please contact support."
-      }
-
-      const replicaOwnerID = replica.ownerID
+      const currentReplica = replicas.find((r: any) => r.id === this.replicaId || r.uuid === this.replicaId)
+      const replicaOwnerID = currentReplica?.ownerID || currentReplica?.owner_uuid
       
       if (!replicaOwnerID) {
         return "I'm not properly configured yet. Please contact support."
