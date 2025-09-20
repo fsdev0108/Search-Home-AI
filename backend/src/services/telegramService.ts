@@ -96,7 +96,7 @@ export class TelegramService {
       const sensayResponse = await this.sensayService.sendMessage(this.replicaId, {
         message: messageText,
         userId: userId || chatId,
-        channel: 'telegram',
+        //channel: 'telegram',
         replicaOwnerID: replicaOwnerID, // Add dynamic owner ID
         metadata: {
           chatId,

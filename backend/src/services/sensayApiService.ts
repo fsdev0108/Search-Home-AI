@@ -341,7 +341,7 @@ export class SensayApiService {
       // Use correct Sensay API format
       const payload = {
         content: messageData.message,
-        source: messageData.channel || 'telegram',
+        //source: messageData.channel || 'telegram',
         skip_chat_history: false
       }
       
