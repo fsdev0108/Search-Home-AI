@@ -28,6 +28,20 @@ fastify.register(multipart, {
   }
 })
 
+// Add parser for application/x-www-form-urlencoded (needed for Twilio webhooks)
+fastify.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, (req, body, done) => {
+  try {
+    const parsed = new URLSearchParams(body as string)
+    const result: any = {}
+    for (const [key, value] of parsed) {
+      result[key] = value
+    }
+    done(null, result)
+  } catch (err) {
+    done(err, undefined)
+  }
+})
+
 fastify.setErrorHandler(errorHandler)
 
 fastify.get('/', async (request, reply) => {
