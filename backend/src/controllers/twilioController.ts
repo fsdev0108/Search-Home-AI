@@ -13,8 +13,16 @@ export class TwilioController {
       const accountSid = process.env.TWILIO_ACCOUNT_SID
       const authToken = process.env.TWILIO_AUTH_TOKEN
 
+      console.log('🔍 Checking Twilio credentials:')
+      console.log('TWILIO_ACCOUNT_SID:', accountSid ? '✅ Set' : '❌ Missing')
+      console.log('TWILIO_AUTH_TOKEN:', authToken ? '✅ Set' : '❌ Missing')
+
       if (!accountSid || !authToken) {
-        return ResponseHandler.error(reply, 'Twilio credentials not configured on server', 500)
+        const missing = []
+        if (!accountSid) missing.push('TWILIO_ACCOUNT_SID')
+        if (!authToken) missing.push('TWILIO_AUTH_TOKEN')
+        
+        return ResponseHandler.error(reply, `Missing environment variables: ${missing.join(', ')}`, 500)
       }
 
       const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
