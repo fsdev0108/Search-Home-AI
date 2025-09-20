@@ -46,16 +46,7 @@ export async function twilioRoutes(fastify: FastifyInstance) {
     }
   }, TwilioController.activateIntegration)
 
-  fastify.post('/twilio/webhook/:integrationId', {
-    schema: {
-      params: {
-        type: 'object',
-        properties: {
-          integrationId: { type: 'string' }
-        }
-      }
-    }
-  }, TwilioController.handleWebhook)
+  fastify.post('/twilio/webhook/:integrationId', TwilioController.handleWebhook)
 
   fastify.delete('/twilio/integrations/:integrationId', {
     preHandler: [authMiddleware, requireUser],

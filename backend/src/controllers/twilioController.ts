@@ -146,10 +146,28 @@ export class TwilioController {
 
   static async handleWebhook(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const body = request.body as any
       const { integrationId } = request.params as { integrationId: string }
+      
+      // Handle both JSON and form-urlencoded data
+      let body: any
+      const contentType = request.headers['content-type']
+      
+      if (contentType?.includes('application/x-www-form-urlencoded')) {
+        // Parse form data manually
+        const rawBody = request.body as string
+        body = {}
+        if (rawBody) {
+          const params = new URLSearchParams(rawBody)
+          for (const [key, value] of params) {
+            body[key] = value
+          }
+        }
+      } else {
+        body = request.body as any
+      }
 
       console.log('📨 Twilio webhook received:', JSON.stringify(body, null, 2))
+      console.log('📋 Content-Type:', contentType)
 
       if (integrationId === 'test-integration') {
         console.log('🧪 Test webhook - echoing message back')
