@@ -120,7 +120,15 @@ export class SensayController {
         recordCount = properties.length
       }
 
-      const sensayService = new SensayApiService(integration.organizationSecret)
+      // ALWAYS use environment variable
+      const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      if (!envOrgSecret) {
+        return reply.status(500).send({
+          success: false,
+          error: 'SENSAY_ORGANIZATION_SECRET environment variable is required'
+        })
+      }
+      const sensayService = new SensayApiService(envOrgSecret)
       let uploadResults = []
 
       if (replicaId) {
@@ -389,7 +397,15 @@ export class SensayController {
         })
       }
 
-      const sensayService = new SensayApiService(integration.organizationSecret)
+      // ALWAYS use environment variable
+      const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      if (!envOrgSecret) {
+        return reply.status(500).send({
+          success: false,
+          error: 'SENSAY_ORGANIZATION_SECRET environment variable is required'
+        })
+      }
+      const sensayService = new SensayApiService(envOrgSecret)
       const sensayUser = await sensayService.createUser(userData)
 
       // Save user to local database
@@ -440,7 +456,15 @@ export class SensayController {
       })
 
       // Fetch details from Sensay API for each user
-      const sensayService = new SensayApiService(integration.organizationSecret)
+      // ALWAYS use environment variable
+      const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      if (!envOrgSecret) {
+        return reply.status(500).send({
+          success: false,
+          error: 'SENSAY_ORGANIZATION_SECRET environment variable is required'
+        })
+      }
+      const sensayService = new SensayApiService(envOrgSecret)
       const usersWithDetails = await Promise.all(
         localUsers.map(async (localUser) => {
           try {
@@ -495,7 +519,18 @@ export class SensayController {
         })
       }
 
-      const sensayService = new SensayApiService(integration.organizationSecret)
+      // ALWAYS use environment variable (consistent with getReplicas)
+      const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      if (!envOrgSecret) {
+        return reply.status(500).send({
+          success: false,
+          error: 'SENSAY_ORGANIZATION_SECRET environment variable is required'
+        })
+      }
+
+      console.log('🔍 Creating replica with org secret:', envOrgSecret.substring(0, 8) + '...')
+      
+      const sensayService = new SensayApiService(envOrgSecret)
       const sensayReplica = await sensayService.createReplica(replicaData)
 
       return reply.status(201).send({
