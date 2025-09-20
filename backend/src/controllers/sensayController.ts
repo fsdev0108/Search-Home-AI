@@ -536,8 +536,30 @@ export class SensayController {
         })
       }
 
-      const sensayService = new SensayApiService(integration.organizationSecret)
+      // Debug logging (without exposing secrets)
+      console.log('🔍 Integration found:', {
+        id: integration.id,
+        organizationName: integration.organizationName,
+        secretPrefix: integration.organizationSecret.substring(0, 8) + '...',
+        createdAt: integration.createdAt,
+        updatedAt: integration.updatedAt
+      })
+
+      // Check if we should use environment variable instead of database value
+      const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      const orgSecretToUse = envOrgSecret || integration.organizationSecret
+
+      console.log('🔍 Organization secret source:', {
+        fromEnv: !!envOrgSecret,
+        envPrefix: envOrgSecret ? envOrgSecret.substring(0, 8) + '...' : 'not set',
+        dbPrefix: integration.organizationSecret.substring(0, 8) + '...',
+        usingPrefix: orgSecretToUse.substring(0, 8) + '...'
+      })
+
+      const sensayService = new SensayApiService(orgSecretToUse)
       let replicas = await sensayService.getReplicas()
+
+      console.log(`📊 Retrieved ${replicas.length} replicas from Sensay API`)
 
       // Filter replicas based on user role
       if (user.role !== 'admin') {
@@ -546,6 +568,7 @@ export class SensayController {
         replicas = replicas.filter(replica => 
           replica.owner_uuid === currentUserId || replica.ownerID === currentUserId
         )
+        console.log(`🔒 Filtered to ${replicas.length} replicas for user ${currentUserId}`)
       }
 
       return reply.send({

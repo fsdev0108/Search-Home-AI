@@ -54,4 +54,31 @@ export async function sensayRoutes(fastify: FastifyInstance) {
   fastify.get('/integrations/:integrationId/logs', { 
     preHandler: [authMiddleware, requireUser] 
   }, sensayController.getSyncLogs.bind(sensayController))
+
+  // Debug endpoint to check organization configuration
+  fastify.get('/debug/organization', { 
+    preHandler: [authMiddleware, requireUser] 
+  }, async (request, reply) => {
+    try {
+      const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      const envOrgId = process.env.ORGANIZATION_ID
+
+      return reply.send({
+        success: true,
+        data: {
+          environment: process.env.NODE_ENV || 'development',
+          hasEnvOrgSecret: !!envOrgSecret,
+          hasEnvOrgId: !!envOrgId,
+          envOrgSecretPrefix: envOrgSecret ? envOrgSecret.substring(0, 8) + '...' : 'not set',
+          envOrgId: envOrgId || 'not set',
+          timestamp: new Date().toISOString()
+        }
+      })
+    } catch (error) {
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to get debug info'
+      })
+    }
+  })
 }
