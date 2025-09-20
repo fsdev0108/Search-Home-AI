@@ -83,12 +83,21 @@ export class TelegramService {
         return
       }
 
+      // Get replica owner for authentication
+      console.log(`🔍 Getting replica owner for ${this.replicaId}`)
+      const replicas = await this.sensayService.getReplicas()
+      const currentReplica = replicas.find((r: any) => r.id === this.replicaId || r.uuid === this.replicaId)
+      const replicaOwnerID = currentReplica?.ownerID || currentReplica?.owner_uuid
+      
+      console.log(`👤 Replica owner ID: ${replicaOwnerID}`)
+
       // Send to Sensay for processing
       console.log(`🤖 Sending to Sensay replica ${this.replicaId}:`, messageText)
       const sensayResponse = await this.sensayService.sendMessage(this.replicaId, {
         message: messageText,
         userId: userId || chatId,
         channel: 'telegram',
+        replicaOwnerID: replicaOwnerID, // Add dynamic owner ID
         metadata: {
           chatId,
           messageId,

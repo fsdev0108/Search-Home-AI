@@ -329,32 +329,43 @@ export class SensayApiService {
     userId: string
     channel?: string
     metadata?: any
+    replicaOwnerID?: string // Add replica owner ID for authentication
   }): Promise<{ response: string; messageId?: string }> {
     try {
       console.log(`📤 Sending message to Sensay replica ${replicaId}:`)
       console.log(`   Message: "${messageData.message}"`)
       console.log(`   User ID: ${messageData.userId}`)
-      console.log(`   Channel: ${messageData.channel || 'api'}`)
+      console.log(`   Channel: ${messageData.channel || 'telegram'}`)
+      console.log(`   Replica Owner: ${messageData.replicaOwnerID}`)
       
+      // Use correct Sensay API format
       const payload = {
-        message: messageData.message,
-        user_id: messageData.userId,
-        channel: messageData.channel || 'api',
-        metadata: messageData.metadata || {}
+        content: messageData.message,
+        source: messageData.channel || 'telegram',
+        skip_chat_history: false
       }
       
-      const response = await this.api.post(`/replicas/${replicaId}/chat`, payload)
+      // Use replica owner ID for authentication (dynamic)
+      const headers = {
+        'X-USER-ID': messageData.replicaOwnerID || messageData.userId
+      }
+      
+      console.log(`📤 Using endpoint: /replicas/${replicaId}/chat/completions`)
+      console.log(`📤 Payload:`, payload)
+      console.log(`📤 Headers:`, headers)
+      
+      const response = await this.api.post(`/replicas/${replicaId}/chat/completions`, payload, { headers })
       
       console.log(`📥 Sensay API response:`, response.data)
 
       return {
-        response: response.data.response || response.data.message,
+        response: response.data.content || response.data.response || response.data.message,
         messageId: response.data.id || response.data.message_id
       }
     } catch (error: any) {
       console.error('❌ Error sending message to replica:', error.response?.data || error.message)
       console.error('   Replica ID:', replicaId)
-      console.error('   Payload:', { message: messageData.message, user_id: messageData.userId })
+      console.error('   Status:', error.response?.status)
       throw new Error(`Failed to send message to replica: ${error.response?.data?.message || error.message}`)
     }
   }
