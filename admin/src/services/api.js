@@ -245,7 +245,7 @@ export const telegramAPI = {
 export const twilioAPI = {
   // Test server Twilio credentials
   testServerCredentials: () => apiCall('/twilio/test-server', {
-    method: 'POST'
+    method: 'GET'
   }),
 
   createIntegration: (integrationId, replicaId) => apiCall('/twilio/integrations', {

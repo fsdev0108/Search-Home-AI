@@ -4,14 +4,8 @@ import { authMiddleware, requireUser } from '../middlewares/auth'
 
 export async function twilioRoutes(fastify: FastifyInstance) {
   
-  fastify.post('/twilio/test-server', {
-    preHandler: [authMiddleware, requireUser],
-    schema: {
-      body: {
-        type: 'object',
-        properties: {}
-      }
-    }
+  fastify.get('/twilio/test-server', {
+    preHandler: [authMiddleware, requireUser]
   }, TwilioController.testServerCredentials)
   
   fastify.post('/twilio/integrations', {
