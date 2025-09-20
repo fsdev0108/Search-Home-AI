@@ -545,16 +545,24 @@ export class SensayController {
         updatedAt: integration.updatedAt
       })
 
-      // Check if we should use environment variable instead of database value
+      // ALWAYS use environment variable (force override for production)
       const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
-      const orgSecretToUse = envOrgSecret || integration.organizationSecret
+      const orgSecretToUse = envOrgSecret // Force env var, ignore database
 
       console.log('🔍 Organization secret source:', {
         fromEnv: !!envOrgSecret,
         envPrefix: envOrgSecret ? envOrgSecret.substring(0, 8) + '...' : 'not set',
         dbPrefix: integration.organizationSecret.substring(0, 8) + '...',
-        usingPrefix: orgSecretToUse.substring(0, 8) + '...'
+        usingPrefix: orgSecretToUse ? orgSecretToUse.substring(0, 8) + '...' : 'not set',
+        forcedEnvVar: true
       })
+
+      if (!orgSecretToUse) {
+        return reply.status(500).send({
+          success: false,
+          error: 'SENSAY_ORGANIZATION_SECRET environment variable is required'
+        })
+      }
 
       const sensayService = new SensayApiService(orgSecretToUse)
       let replicas = await sensayService.getReplicas()
