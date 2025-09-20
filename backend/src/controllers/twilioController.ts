@@ -60,6 +60,35 @@ export class TwilioController {
       return ResponseHandler.error(reply, `Twilio API error: ${error.response?.status || 'Unknown error'}`, 401)
     }
   }
+
+  static async getIntegration(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { integrationId } = request.params as { integrationId: string }
+
+      const twilioSettings = await prisma.twilioSettings.findFirst({
+        where: { integrationId },
+        include: { integration: true }
+      })
+
+      if (!twilioSettings) {
+        return ResponseHandler.error(reply, 'Twilio integration not found', 404)
+      }
+
+      return ResponseHandler.success(reply, {
+        id: twilioSettings.id,
+        integrationId: twilioSettings.integrationId,
+        phoneNumber: twilioSettings.phoneNumber,
+        isActive: twilioSettings.isActive,
+        replicaId: twilioSettings.replicaId,
+        createdAt: twilioSettings.createdAt,
+        updatedAt: twilioSettings.updatedAt
+      }, 'Twilio integration retrieved successfully')
+
+    } catch (error: any) {
+      console.error('Error getting Twilio integration:', error)
+      return ResponseHandler.error(reply, 'Failed to get Twilio integration', 500)
+    }
+  }
   
   static async createIntegration(request: FastifyRequest, reply: FastifyReply) {
     try {

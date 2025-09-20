@@ -8,6 +8,18 @@ export async function twilioRoutes(fastify: FastifyInstance) {
     preHandler: [authMiddleware, requireUser]
   }, TwilioController.testServerCredentials)
   
+  fastify.get('/twilio/integrations/:integrationId', {
+    preHandler: [authMiddleware, requireUser],
+    schema: {
+      params: {
+        type: 'object',
+        properties: {
+          integrationId: { type: 'string' }
+        }
+      }
+    }
+  }, TwilioController.getIntegration)
+
   fastify.post('/twilio/integrations', {
     preHandler: [authMiddleware, requireUser],
     schema: {
