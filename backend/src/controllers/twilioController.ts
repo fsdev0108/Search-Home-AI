@@ -3,6 +3,7 @@ import { TwilioService } from '../services/twilioService'
 import { ResponseHandler } from '../utils/response'
 import { PrismaClient } from '@prisma/client'
 import axios from 'axios'
+import twilio from 'twilio'
 
 const prisma = new PrismaClient()
 
@@ -151,38 +152,49 @@ export class TwilioController {
 
       console.log('📨 Twilio webhook received:', JSON.stringify(body, null, 2))
 
+      // Create TwiML response
+      const twiml = new twilio.twiml.MessagingResponse()
+
       if (integrationId === 'test-integration') {
         console.log('🧪 Test webhook - echoing message back')
-        const from = body.From?.replace('whatsapp:', '')
-        const message = body.Body
+        const message = body.Body || 'Hello!'
         
-        if (from && message) {
-          const testService = new TwilioService(
-            process.env.TWILIO_ACCOUNT_SID || '',
-            process.env.TWILIO_AUTH_TOKEN || '',
-            process.env.TWILIO_WHATSAPP_NUMBER || '+14155238886',
-            'test-replica'
-          )
-          
-          await testService.sendMessage(from, `Echo: ${message} ✅`)
-        }
+        // Add message to TwiML response
+        twiml.message(`Echo: ${message} ✅`)
         
-        return reply.status(200).send('OK')
+        // Set proper headers for TwiML
+        reply.type('text/xml')
+        return reply.status(200).send(twiml.toString())
       }
 
       const twilioService = await TwilioService.getTwilioService(integrationId)
       
       if (twilioService) {
-        await twilioService.processMessage(body)
+        // Process message and get response
+        const responseText = await twilioService.processMessageForTwiML(body)
+        if (responseText) {
+          twiml.message(responseText)
+        } else {
+          twiml.message('Thank you for your message!')
+        }
       } else {
         console.log(`⚠️  No Twilio service found for integration: ${integrationId}`)
+        twiml.message('Service temporarily unavailable. Please try again later.')
       }
 
-      return reply.status(200).send('OK')
+      // Set proper headers for TwiML
+      reply.type('text/xml')
+      return reply.status(200).send(twiml.toString())
 
     } catch (error) {
       console.error('Error handling Twilio webhook:', error)
-      return reply.status(500).send('Error')
+      
+      // Return error TwiML response
+      const twiml = new twilio.twiml.MessagingResponse()
+      twiml.message('Sorry, there was an error processing your message.')
+      
+      reply.type('text/xml')
+      return reply.status(200).send(twiml.toString())
     }
   }
 

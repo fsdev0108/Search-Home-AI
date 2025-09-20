@@ -99,6 +99,61 @@ export class TwilioService {
     }
   }
 
+  async processMessageForTwiML(body: any): Promise<string> {
+    try {
+      const from = body.From?.replace('whatsapp:', '')
+      const message = body.Body
+      const messageId = body.MessageSid
+
+      console.log(`📱 WhatsApp message from ${from}: ${message}`)
+
+      if (!message || message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi')) {
+        return "👋 Hello! I'm your real estate assistant. Ask me anything about properties!"
+      }
+
+      // Check if this is a join command for specific real estate company
+      if (message.toLowerCase().startsWith('join ')) {
+        const companyCode = message.toLowerCase().replace('join ', '').trim()
+        return `🏠 Welcome to ${companyCode} real estate! How can I help you find your perfect property?`
+      }
+
+      if (!this.replicaId) {
+        return "I'm not properly configured yet. Please contact support."
+      }
+
+      const replicas = await this.sensayService.getReplicas()
+      const replica = replicas.find(r => r.id === this.replicaId)
+      
+      if (!replica) {
+        return "I'm not properly configured yet. Please contact support."
+      }
+
+      const replicaOwnerID = replica.ownerID
+      
+      if (!replicaOwnerID) {
+        return "I'm not properly configured yet. Please contact support."
+      }
+
+      const sensayResponse = await this.sensayService.sendMessage(this.replicaId, {
+        message,
+        userId: from,
+        channel: 'whatsapp',
+        replicaOwnerID,
+        metadata: { messageId, from }
+      })
+
+      if (sensayResponse?.response) {
+        return sensayResponse.response
+      } else {
+        return "I couldn't process your message right now. Please try again later."
+      }
+
+    } catch (error) {
+      console.error('Error processing WhatsApp message for TwiML:', error)
+      return "Sorry, there was an error processing your message."
+    }
+  }
+
   static async createTwilioIntegration(integrationId: string, accountSid: string, authToken: string, phoneNumber: string, replicaId: string) {
     try {
       const twilioSettings = await prisma.twilioSettings.upsert({

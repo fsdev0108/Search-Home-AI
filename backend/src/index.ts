@@ -38,7 +38,7 @@ fastify.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'st
     }
     done(null, result)
   } catch (err) {
-    done(err, undefined)
+    done(err as Error, undefined)
   }
 })
 
