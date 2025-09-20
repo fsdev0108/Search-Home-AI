@@ -1,0 +1,341 @@
+.whatsapp-integration {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.whatsapp-loading {
+    text-align: center;
+    padding: 2rem;
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+.whatsapp-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.whatsapp-header h2 {
+    color: #25D366;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+}
+
+.whatsapp-header p {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+.whatsapp-alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.whatsapp-alert-error {
+    background-color: #fee;
+    color: #c33;
+    border: 1px solid #fcc;
+}
+
+.whatsapp-alert-success {
+    background-color: #efe;
+    color: #363;
+    border: 1px solid #cfc;
+}
+
+.whatsapp-setup {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.whatsapp-step {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.whatsapp-step:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.whatsapp-step h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.whatsapp-step ol {
+    color: #7f8c8d;
+    line-height: 1.6;
+}
+
+.whatsapp-step ol li {
+    margin-bottom: 0.5rem;
+}
+
+.whatsapp-step ol strong {
+    color: #25D366;
+}
+
+.whatsapp-step a {
+    color: #25D366;
+    text-decoration: none;
+}
+
+.whatsapp-step a:hover {
+    text-decoration: underline;
+}
+
+.whatsapp-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.whatsapp-input-disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.whatsapp-help-text {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.whatsapp-info-box {
+    background-color: #e8f5e8;
+    border: 1px solid #25D366;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.whatsapp-info-box p {
+    margin: 0.5rem 0;
+    color: #2c3e50;
+}
+
+.whatsapp-info-box p:first-child {
+    margin-top: 0;
+}
+
+.whatsapp-info-box p:last-child {
+    margin-bottom: 0;
+}
+
+.whatsapp-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.whatsapp-input,
+.whatsapp-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.whatsapp-input:focus,
+.whatsapp-select:focus {
+    outline: none;
+    border-color: #25D366;
+    box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+}
+
+.whatsapp-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.whatsapp-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.whatsapp-btn-test {
+    background-color: #f39c12;
+    color: white;
+}
+
+.whatsapp-btn-test:hover:not(:disabled) {
+    background-color: #e67e22;
+    transform: translateY(-1px);
+}
+
+.whatsapp-btn-primary {
+    background-color: #25D366;
+    color: white;
+}
+
+.whatsapp-btn-primary:hover:not(:disabled) {
+    background-color: #1ea952;
+    transform: translateY(-1px);
+}
+
+.whatsapp-btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.whatsapp-btn-secondary:hover:not(:disabled) {
+    background-color: #7f8c8d;
+    transform: translateY(-1px);
+}
+
+.whatsapp-btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.whatsapp-btn-danger:hover:not(:disabled) {
+    background-color: #c0392b;
+    transform: translateY(-1px);
+}
+
+.whatsapp-reconfigure {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.whatsapp-existing {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.whatsapp-status {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.whatsapp-status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.whatsapp-status-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+.whatsapp-status-value {
+    font-size: 1rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.whatsapp-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.whatsapp-status-badge.active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.whatsapp-status-badge.inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.whatsapp-config {
+    margin-bottom: 2rem;
+}
+
+.whatsapp-config h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.whatsapp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.whatsapp-instructions {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #25D366;
+}
+
+.whatsapp-instructions h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.whatsapp-instructions ol {
+    color: #7f8c8d;
+    line-height: 1.6;
+}
+
+.whatsapp-instructions ol li {
+    margin-bottom: 0.5rem;
+}
+
+.whatsapp-instructions code {
+    background-color: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: #495057;
+    word-break: break-all;
+}
+
+@media (max-width: 768px) {
+    .whatsapp-integration {
+        padding: 1rem;
+    }
+
+    .whatsapp-status {
+        grid-template-columns: 1fr;
+    }
+
+    .whatsapp-actions {
+        flex-direction: column;
+    }
+
+    .whatsapp-btn {
+        width: 100%;
+        margin-right: 0;
+    }
+}

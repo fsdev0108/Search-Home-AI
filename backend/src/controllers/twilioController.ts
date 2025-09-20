@@ -2,17 +2,63 @@ import { FastifyRequest, FastifyReply } from 'fastify'
 import { TwilioService } from '../services/twilioService'
 import { ResponseHandler } from '../utils/response'
 import { PrismaClient } from '@prisma/client'
+import axios from 'axios'
 
 const prisma = new PrismaClient()
 
 export class TwilioController {
   
+  static async testServerCredentials(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const accountSid = process.env.TWILIO_ACCOUNT_SID
+      const authToken = process.env.TWILIO_AUTH_TOKEN
+
+      if (!accountSid || !authToken) {
+        return ResponseHandler.error(reply, 'Twilio credentials not configured on server', 500)
+      }
+
+      const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
+      
+      const response = await axios.get(
+        `https://api.twilio.com/2010-04-01/Accounts/${accountSid}.json`,
+        {
+          headers: {
+            'Authorization': `Basic ${auth}`
+          }
+        }
+      )
+
+      if (response.status === 200) {
+        return ResponseHandler.success(reply, {
+          accountName: response.data.friendly_name,
+          status: response.data.status,
+          phoneNumber: process.env.TWILIO_WHATSAPP_NUMBER || '+14155238886'
+        }, 'Server Twilio credentials are valid')
+      } else {
+        return ResponseHandler.error(reply, 'Invalid server credentials', 401)
+      }
+
+    } catch (error: any) {
+      console.error('Error testing server Twilio credentials:', error)
+      return ResponseHandler.error(reply, 'Invalid server credentials', 401)
+    }
+  }
+  
   static async createIntegration(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const { integrationId, accountSid, authToken, phoneNumber, replicaId } = request.body as any
+      const { integrationId, replicaId } = request.body as any
 
-      if (!integrationId || !accountSid || !authToken || !phoneNumber || !replicaId) {
+      if (!integrationId || !replicaId) {
         return ResponseHandler.error(reply, 'Missing required fields', 400)
+      }
+
+      // For MVP: using server credentials
+      const accountSid = process.env.TWILIO_ACCOUNT_SID
+      const authToken = process.env.TWILIO_AUTH_TOKEN
+      const phoneNumber = process.env.TWILIO_WHATSAPP_NUMBER || '+14155238886'
+
+      if (!accountSid || !authToken) {
+        return ResponseHandler.error(reply, 'Twilio credentials not configured on server', 500)
       }
 
       const twilioSettings = await TwilioService.createTwilioIntegration(
@@ -27,7 +73,7 @@ export class TwilioController {
         id: twilioSettings.id,
         phoneNumber: twilioSettings.phoneNumber,
         isActive: twilioSettings.isActive
-      }, 'Twilio integration created successfully')
+      }, 'WhatsApp integration created successfully! Using server credentials.')
 
     } catch (error: any) {
       console.error('Error creating Twilio integration:', error)

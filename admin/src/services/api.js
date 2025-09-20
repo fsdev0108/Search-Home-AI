@@ -241,12 +241,41 @@ export const telegramAPI = {
   })
 }
 
+// Twilio/WhatsApp API
+export const twilioAPI = {
+  // Test server Twilio credentials
+  testServerCredentials: () => apiCall('/twilio/test-server', {
+    method: 'POST'
+  }),
+
+  createIntegration: (integrationId, replicaId) => apiCall('/twilio/integrations', {
+    method: 'POST',
+    body: JSON.stringify({ integrationId, replicaId })
+  }),
+
+  getIntegration: (integrationId) => apiCall(`/twilio/integrations/${integrationId}`),
+
+  updateIntegration: (integrationId, data) => apiCall(`/twilio/integrations/${integrationId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+
+  activateIntegration: (integrationId) => apiCall(`/twilio/integrations/${integrationId}/activate`, {
+    method: 'POST'
+  }),
+
+  deleteIntegration: (integrationId) => apiCall(`/twilio/integrations/${integrationId}`, {
+    method: 'DELETE'
+  })
+}
+
 export default {
   integrations: integrationsAPI,
   users: usersAPI,
   replicas: replicasAPI,
   hubspot: hubspotAPI,
   telegram: telegramAPI,
+  twilio: twilioAPI,
   syncLogs: syncLogsAPI,
   files: filesAPI,
   knowledgeBase: knowledgeBaseAPI,

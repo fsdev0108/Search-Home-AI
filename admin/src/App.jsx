@@ -6,7 +6,7 @@ import Users from './components/Users/Users'
 import Replicas from './components/Replicas/Replicas'
 import Settings from './components/Settings/Settings'
 import Widget from './components/Widget/Widget'
-import TelegramIntegration from './components/Telegram/TelegramIntegration'
+import SocialsIntegrations from './components/SocialsIntegrations/SocialsIntegrations'
 import Login from './components/Auth/Login'
 
 function App() {
@@ -47,8 +47,8 @@ function App() {
         return user.role === 'admin' ? <Users /> : <div>Access denied</div>
       case 'replicas':
         return <Replicas />
-      case 'telegram':
-        return <TelegramIntegration onTabChange={setCurrentTab} />
+      case 'socials':
+        return <SocialsIntegrations onTabChange={setCurrentTab} />
       case 'widget':
         return <Widget onTabChange={setCurrentTab} />
       case 'settings':

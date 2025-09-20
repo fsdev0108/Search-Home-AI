@@ -5,7 +5,7 @@ const Header = ({ currentTab, onTabChange, user, onLogout }) => {
         { id: 'dashboard', label: 'Dashboard' },
         { id: 'users', label: 'Users', adminOnly: true },
         { id: 'replicas', label: 'Replicas' },
-        { id: 'telegram', label: '🤖 Telegram', userOnly: true },
+        { id: 'socials', label: '📱 Socials', userOnly: true },
         { id: 'widget', label: 'Widget', userOnly: true },
         { id: 'settings', label: 'Settings', userOnly: true }
     ]
