@@ -101,8 +101,17 @@ export class TwilioService {
 
   static async createTwilioIntegration(integrationId: string, accountSid: string, authToken: string, phoneNumber: string, replicaId: string) {
     try {
-      const twilioSettings = await prisma.twilioSettings.create({
-        data: {
+      const twilioSettings = await prisma.twilioSettings.upsert({
+        where: { integrationId },
+        update: {
+          accountSid,
+          authToken,
+          phoneNumber,
+          replicaId,
+          isActive: false,
+          updatedAt: new Date()
+        },
+        create: {
           integrationId,
           accountSid,
           authToken,
@@ -115,7 +124,7 @@ export class TwilioService {
 
       return twilioSettings
     } catch (error: any) {
-      throw new Error(`Failed to create Twilio integration: ${error.message}`)
+      throw new Error(`Failed to create/update Twilio integration: ${error.message}`)
     }
   }
 

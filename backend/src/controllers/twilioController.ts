@@ -48,7 +48,16 @@ export class TwilioController {
 
     } catch (error: any) {
       console.error('Error testing server Twilio credentials:', error)
-      return ResponseHandler.error(reply, 'Invalid server credentials', 401)
+      
+      if (error.response?.status === 404) {
+        return ResponseHandler.error(reply, 'Account SID not found. Please check if you are using the correct Account SID (starts with AC) instead of API Key SID (starts with SK)', 401)
+      }
+      
+      if (error.response?.status === 401) {
+        return ResponseHandler.error(reply, 'Invalid credentials. Please check your Account SID and Auth Token', 401)
+      }
+      
+      return ResponseHandler.error(reply, `Twilio API error: ${error.response?.status || 'Unknown error'}`, 401)
     }
   }
   
