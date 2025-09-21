@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import Modal from '../Modal/Modal'
+import { Button, Card, Loading } from '../UI'
 import { replicasAPI, usersAPI, integrationsAPI, knowledgeBaseAPI } from '../../services/api'
-import './Replicas.css'
 
 const Replicas = () => {
   const [replicas, setReplicas] = useState([])
@@ -160,13 +160,10 @@ const Replicas = () => {
 
   const handleDownload = (entry) => {
     if (entry.type === 'file' && entry.file?.downloadURL) {
-      // Open download URL in new tab
       window.open(entry.file.downloadURL, '_blank')
     } else if (entry.type === 'url' && entry.url) {
-      // Open URL in new tab
       window.open(entry.url, '_blank')
     } else if (entry.type === 'youtube' && entry.youtube?.url) {
-      // Open YouTube URL in new tab
       window.open(entry.youtube.url, '_blank')
     }
   }
@@ -258,383 +255,348 @@ const Replicas = () => {
 
   if (loading) {
     return (
-      <div className="replicas-loading">
-        <div className="spinner"></div>
-        <p>Loading replicas...</p>
+      <div className="container-admin py-8">
+        <Loading message="Loading replicas..." />
       </div>
     )
   }
 
   return (
-    <div className="replicas">
-      <div className="replicas-header">
-        <h1>Manage Replicas</h1>
-        <button
-          className="btn btn-primary"
+    <div className="container-admin py-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Manage Replicas</h1>
+          {currentIntegration && (
+            <p className="text-gray-600">
+              Integration: {currentIntegration.organizationName}
+            </p>
+          )}
+        </div>
+        <Button
           onClick={openModal}
           disabled={!currentIntegration}
         >
           + New Replica
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <div className="error-message">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-6">
           {error}
         </div>
       )}
 
-      {currentIntegration && (
-        <div className="integration-info">
-          <small>Integration: {currentIntegration.organizationName}</small>
-        </div>
-      )}
-
-      <div className="table-container">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>UUID</th>
-              <th>Name</th>
-              <th>User</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {replicas.map(replica => (
-              <tr key={replica.uuid}>
-                <td>{replica.uuid}</td>
-                <td>{replica.name}</td>
-                <td>{replica.ownerID}</td>
-                <td>
-                  <span className="status-badge status-active">Active</span>
-                </td>
-                <td>
-                  <div className="action-buttons">
-                    <button
-                      className="btn btn-sm btn-primary"
+      <Card>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  UUID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {replicas.map(replica => (
+                <tr key={replica.uuid} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {replica.uuid}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {replica.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {replica.ownerID}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold bg-green-100 text-green-800">
+                      Active
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                    <Button
+                      size="sm"
                       onClick={() => toggleReplicaExpansion(replica)}
                       disabled={filesLoading}
                     >
                       {filesLoading && expandedReplica?.uuid === replica.uuid ? 'Loading...' :
                         expandedReplica?.uuid === replica.uuid ? 'Hide Files' : 'View Files'}
-                    </button>
-                    <button className="btn btn-sm btn-secondary">
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                    >
                       Edit
-                    </button>
-                    <button className="btn btn-sm btn-danger">
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                    >
                       Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* Expanded Files Section */}
       {expandedReplica && (
-        <div className="expanded-files-section">
-          <div className="expanded-header">
-            <h3>Knowledge Base Files - {expandedReplica.name}</h3>
-            <button
-              className="btn btn-sm btn-secondary"
+        <Card className="mt-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Knowledge Base Files - {expandedReplica.name}
+            </h3>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setExpandedReplica(null)}
             >
               Close
-            </button>
+            </Button>
           </div>
 
           {filesLoading ? (
-            <div className="loading-container">
-              <div className="spinner"></div>
-              <p>Loading files...</p>
-            </div>
+            <Loading message="Loading files..." size="sm" />
           ) : (
-            <div className="files-container">
+            <div>
               {knowledgeBase.length === 0 ? (
-                <div className="no-files">
-                  <p>No files found for this replica.</p>
-                  <p>Upload files to the knowledge base to see them here.</p>
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-2">No files found for this replica.</p>
+                  <p className="text-gray-500 text-sm">Upload files to the knowledge base to see them here.</p>
                 </div>
               ) : (
-                <div className="files-list">
-                  <div className="table-container">
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Type</th>
-                          <th>Title</th>
-                          <th>Status</th>
-                          <th>Summary</th>
-                          <th>Created</th>
-                          <th>Actions</th>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Type
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Title
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Summary
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Created
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {knowledgeBase.map(file => (
+                        <tr key={file.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {file.id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800">
+                              {file.type}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {file.title}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold ${file.status.toLowerCase() === 'active'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                              }`}>
+                              {file.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                            {file.summary || 'No summary'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {new Date(file.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <Button
+                              size="sm"
+                              onClick={() => toggleEntryExpansion(file)}
+                              disabled={entryLoading}
+                            >
+                              {expandedEntry?.id === file.id ? 'Hide' : 'View'}
+                            </Button>
+                            {canDownload(file) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDownload(file)}
+                              >
+                                {file.type === 'file' ? 'Download' : 'Open'}
+                              </Button>
+                            )}
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleDeleteEntry(file)}
+                            >
+                              Delete
+                            </Button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {knowledgeBase.map(file => (
-                          <tr key={file.id}>
-                            <td>{file.id}</td>
-                            <td>
-                              <span className={`type-badge type-${file.type}`}>
-                                {file.type}
-                              </span>
-                            </td>
-                            <td>{file.title}</td>
-                            <td>
-                              <span className={`status-badge status-${file.status.toLowerCase()}`}>
-                                {file.status}
-                              </span>
-                            </td>
-                            <td>{file.summary || 'No summary'}</td>
-                            <td>{new Date(file.createdAt).toLocaleDateString()}</td>
-                            <td>
-                              <div className="action-buttons">
-                                <button
-                                  className="btn btn-sm btn-primary"
-                                  onClick={() => toggleEntryExpansion(file)}
-                                  disabled={entryLoading}
-                                  title="View content"
-                                >
-                                  {expandedEntry?.id === file.id ? 'Hide' : 'View'}
-                                </button>
-                                {canDownload(file) && (
-                                  <button
-                                    className="btn btn-sm btn-secondary"
-                                    onClick={() => handleDownload(file)}
-                                    title={file.type === 'file' ? 'Download file' : 'Open link'}
-                                  >
-                                    {file.type === 'file' ? 'Download' : 'Open'}
-                                  </button>
-                                )}
-                                <button
-                                  className="btn btn-sm btn-danger"
-                                  onClick={() => handleDeleteEntry(file)}
-                                  title="Delete entry"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Entry Details Section */}
+              {expandedEntry && (
+                <div className="mt-6 p-6 bg-gray-50 border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-gray-900">
+                      Entry Details - {expandedEntry.title}
+                    </h4>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setExpandedEntry(null)}
+                    >
+                      Close
+                    </Button>
                   </div>
 
-                  {/* Entry Details Section */}
-                  {expandedEntry && (
-                    <div className="entry-details-section">
-                      <div className="entry-details-header">
-                        <h4>Entry Details - {expandedEntry.title}</h4>
-                        <button
-                          className="btn btn-sm btn-secondary"
-                          onClick={() => setExpandedEntry(null)}
-                        >
-                          Close
-                        </button>
+                  {entryLoading ? (
+                    <Loading message="Loading entry details..." size="sm" />
+                  ) : entryDetails ? (
+                    <div className="space-y-4">
+                      <div>
+                        <h5 className="text-lg font-medium text-gray-900">{entryDetails.title}</h5>
+                        <div className="flex space-x-2 mt-2">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800">
+                            {entryDetails.type}
+                          </span>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold ${entryDetails.status.toLowerCase() === 'active'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                            }`}>
+                            {entryDetails.status}
+                          </span>
+                        </div>
                       </div>
 
-                      {entryLoading ? (
-                        <div className="loading-container">
-                          <div className="spinner"></div>
-                          <p>Loading entry details...</p>
-                        </div>
-                      ) : entryDetails ? (
-                        <div className="entry-details">
-                          <div className="entry-header">
-                            <h5>{entryDetails.title}</h5>
-                            <div className="entry-meta">
-                              <span className={`type-badge type-${entryDetails.type}`}>
-                                {entryDetails.type}
-                              </span>
-                              <span className={`status-badge status-${entryDetails.status.toLowerCase()}`}>
-                                {entryDetails.status}
-                              </span>
-                            </div>
+                      {entryDetails.content && (
+                        <div>
+                          <h6 className="text-sm font-medium text-gray-900 mb-2">Content:</h6>
+                          <div className="bg-white p-4 border border-gray-200 rounded-sm">
+                            <p className="text-gray-700">{entryDetails.content}</p>
                           </div>
-
-                          {entryDetails.summary && (
-                            <div className="entry-section">
-                              <h6>Summary</h6>
-                              <p>{entryDetails.summary}</p>
-                            </div>
-                          )}
-
-                          {entryDetails.type === 'file' && entryDetails.file && (
-                            <div className="entry-section">
-                              <h6>File Information</h6>
-                              <div className="file-info">
-                                <p><strong>Name:</strong> {entryDetails.file.name}</p>
-                                <p><strong>Size:</strong> {Math.round(entryDetails.file.size / 1024)} KB</p>
-                                <p><strong>Type:</strong> {entryDetails.file.mimeType}</p>
-                                {entryDetails.file.downloadURL && (
-                                  <button
-                                    className="btn btn-primary"
-                                    onClick={() => window.open(entryDetails.file.downloadURL, '_blank')}
-                                  >
-                                    Download File
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {entryDetails.type === 'url' && entryDetails.website && (
-                            <div className="entry-section">
-                              <h6>Website Information</h6>
-                              <div className="website-info">
-                                <p><strong>URL:</strong>
-                                  <a href={entryDetails.website.url} target="_blank" rel="noopener noreferrer">
-                                    {entryDetails.website.url}
-                                  </a>
-                                </p>
-                                {entryDetails.website.title && <p><strong>Title:</strong> {entryDetails.website.title}</p>}
-                                {entryDetails.website.description && <p><strong>Description:</strong> {entryDetails.website.description}</p>}
-                                {entryDetails.website.text && (
-                                  <div className="website-text">
-                                    <h6>Extracted Text:</h6>
-                                    <div className="text-content">
-                                      {entryDetails.website.text.substring(0, 500)}
-                                      {entryDetails.website.text.length > 500 && '...'}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {entryDetails.type === 'youtube' && entryDetails.youtube && (
-                            <div className="entry-section">
-                              <h6>YouTube Video Information</h6>
-                              <div className="youtube-info">
-                                <p><strong>URL:</strong>
-                                  <a href={entryDetails.youtube.url} target="_blank" rel="noopener noreferrer">
-                                    {entryDetails.youtube.url}
-                                  </a>
-                                </p>
-                                {entryDetails.youtube.title && <p><strong>Title:</strong> {entryDetails.youtube.title}</p>}
-                                {entryDetails.youtube.description && <p><strong>Description:</strong> {entryDetails.youtube.description}</p>}
-                                {entryDetails.youtube.summary && <p><strong>Summary:</strong> {entryDetails.youtube.summary}</p>}
-                                {entryDetails.youtube.transcription && (
-                                  <div className="transcription">
-                                    <h6>Transcription:</h6>
-                                    <div className="text-content">
-                                      {entryDetails.youtube.transcription.substring(0, 500)}
-                                      {entryDetails.youtube.transcription.length > 500 && '...'}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {entryDetails.rawText && (
-                            <div className="entry-section">
-                              <h6>Raw Text Content</h6>
-                              <div className="text-content">
-                                {entryDetails.rawText.substring(0, 1000)}
-                                {entryDetails.rawText.length > 1000 && '...'}
-                              </div>
-                            </div>
-                          )}
-
-                          {entryDetails.generatedFacts && entryDetails.generatedFacts.length > 0 && (
-                            <div className="entry-section">
-                              <h6>Generated Facts</h6>
-                              <ul>
-                                {entryDetails.generatedFacts.map((fact, index) => (
-                                  <li key={index}>{fact}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {entryDetails.error && (
-                            <div className="entry-section error-section">
-                              <h6>Error</h6>
-                              <p className="error-message">{entryDetails.error.message}</p>
-                            </div>
-                          )}
-
-                          <div className="entry-footer">
-                            <p><strong>Created:</strong> {new Date(entryDetails.createdAt).toLocaleString()}</p>
-                            <p><strong>Updated:</strong> {new Date(entryDetails.updatedAt).toLocaleString()}</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="no-data">
-                          <p>No entry details available.</p>
                         </div>
                       )}
+
+                      {entryDetails.summary && (
+                        <div>
+                          <h6 className="text-sm font-medium text-gray-900 mb-2">Summary:</h6>
+                          <p className="text-gray-700">{entryDetails.summary}</p>
+                        </div>
+                      )}
+
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p><strong>Created:</strong> {new Date(entryDetails.createdAt).toLocaleString()}</p>
+                        <p><strong>Updated:</strong> {new Date(entryDetails.updatedAt).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-gray-600">No entry details available.</p>
                     </div>
                   )}
                 </div>
               )}
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title="Create New Replica">
-        <form onSubmit={handleSubmit} className="replica-form">
-          <div className="form-group">
-            <label htmlFor="name">Name *</label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Name *
+            </label>
             <input
               type="text"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              maxLength={50}
               required
-              placeholder="Enter replica name (max 50 characters)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              placeholder="Enter replica name"
             />
-            <small>{formData.name.length}/50 characters</small>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="shortDescription">Short Description *</label>
-            <input
-              type="text"
+          <div>
+            <label htmlFor="shortDescription" className="block text-sm font-medium text-gray-700 mb-1">
+              Short Description *
+            </label>
+            <textarea
               id="shortDescription"
               name="shortDescription"
               value={formData.shortDescription}
               onChange={handleInputChange}
-              maxLength={50}
               required
-              placeholder="Brief description (max 50 characters)"
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              placeholder="Enter short description"
             />
-            <small>{formData.shortDescription.length}/50 characters</small>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="greeting">Greeting *</label>
+          <div>
+            <label htmlFor="greeting" className="block text-sm font-medium text-gray-700 mb-1">
+              Greeting Message *
+            </label>
             <textarea
               id="greeting"
               name="greeting"
               value={formData.greeting}
               onChange={handleInputChange}
-              maxLength={600}
               required
               rows={3}
-              placeholder="Welcome message (max 600 characters)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              placeholder="Enter greeting message"
             />
-            <small>{formData.greeting.length}/600 characters</small>
           </div>
 
-          {isAdmin ? (
-            <div className="form-group">
-              <label htmlFor="ownerID">Owner ID *</label>
+          {isAdmin && (
+            <div>
+              <label htmlFor="ownerID" className="block text-sm font-medium text-gray-700 mb-1">
+                Owner *
+              </label>
               <select
                 id="ownerID"
                 name="ownerID"
                 value={formData.ownerID}
                 onChange={handleInputChange}
                 required
+                className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               >
                 <option value="">Select a user</option>
                 {users.map(user => (
@@ -643,27 +605,13 @@ const Replicas = () => {
                   </option>
                 ))}
               </select>
-              <small>Select the user who will own this replica</small>
-            </div>
-          ) : (
-            <div className="form-group">
-              <label htmlFor="ownerID">Owner ID</label>
-              <input
-                type="text"
-                id="ownerID"
-                name="ownerID"
-                value={formData.ownerID}
-                onChange={handleInputChange}
-                readOnly
-                className="readonly-field"
-                placeholder="Your user ID (auto-filled)"
-              />
-              <small>This replica will be owned by you automatically</small>
             </div>
           )}
 
-          <div className="form-group">
-            <label htmlFor="slug">Slug *</label>
+          <div>
+            <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
+              Slug *
+            </label>
             <input
               type="text"
               id="slug"
@@ -672,22 +620,30 @@ const Replicas = () => {
               onChange={handleInputChange}
               maxLength={50}
               required
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               placeholder="URL-friendly identifier (max 50 characters)"
             />
-            <small>{formData.slug.length}/50 characters</small>
+            <p className="text-xs text-gray-500 mt-1">{formData.slug.length}/50 characters</p>
           </div>
 
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={closeModal}>
+          <div className="flex space-x-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeModal}
+              className="flex-1"
+            >
               Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1"
+            >
               Create Replica
-            </button>
+            </Button>
           </div>
         </form>
       </Modal>
-
     </div>
   )
 }

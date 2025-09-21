@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import './TelegramIntegration.css'
 import API, { API_CONFIG } from '../../services/api'
+import { Button, Card, Input, Select, Loading } from '../UI'
 import NoReplicas from '../NoReplicas/NoReplicas'
 
 const TelegramIntegration = ({ onTabChange }) => {
@@ -280,7 +280,11 @@ const TelegramIntegration = ({ onTabChange }) => {
 
 
     if (loading) {
-        return <div className="telegram-loading">Loading Telegram integration...</div>
+        return (
+            <div className="container-admin py-8">
+                <Loading message="Loading Telegram integration..." />
+            </div>
+        )
     }
 
     // Check if no replicas exist
@@ -289,147 +293,153 @@ const TelegramIntegration = ({ onTabChange }) => {
     }
 
     return (
-        <div className="telegram-integration">
-            <div className="telegram-header">
-                <h2>🤖 Telegram Integration</h2>
-                <p>Configure your Telegram bot for automated customer service</p>
+        <div className="container-admin py-8">
+            <div className="mb-8">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-2">Telegram Integration</h1>
+                <p className="text-gray-600">Configure your Telegram bot for automated customer service</p>
             </div>
 
             {error && (
-                <div className="telegram-alert telegram-alert-error">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-6">
                     {error}
                 </div>
             )}
 
             {success && (
-                <div className="telegram-alert telegram-alert-success">
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 mb-6">
                     {success}
                 </div>
             )}
 
             {!telegramData ? (
-                // Nova integração
-                <div className="telegram-setup">
-                    <div className="telegram-step">
-                        <h3>📋 Step 1: Create your Bot</h3>
-                        <ol>
-                            <li>Open Telegram and search for <strong>@BotFather</strong></li>
-                            <li>Type <code>/newbot</code> and follow the instructions</li>
-                            <li>Choose a name and username for your bot</li>
-                            <li>Copy the <strong>token</strong> that BotFather sends you</li>
+                <div className="space-y-6">
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 1: Create your Bot</h3>
+                        <ol className="space-y-2 text-gray-700">
+                            <li>1. Open Telegram and search for <strong>@BotFather</strong></li>
+                            <li>2. Type <code className="bg-gray-100 px-2 py-1 rounded text-sm">/newbot</code> and follow the instructions</li>
+                            <li>3. Choose a name and username for your bot</li>
+                            <li>4. Copy the <strong>token</strong> that BotFather sends you</li>
                         </ol>
-                    </div>
+                    </Card>
 
-                    <div className="telegram-step">
-                        <h3>🔑 Step 2: Configure the Token</h3>
-                        <div className="telegram-form-group">
-                            <label>Bot Token:</label>
-                            <div className="telegram-token-input">
-                                <input
-                                    type="text"
-                                    placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
-                                    value={formData.botToken}
-                                    onChange={(e) => setFormData({ ...formData, botToken: e.target.value })}
-                                    className="telegram-input"
-                                />
-                                <button
-                                    onClick={testBotToken}
-                                    disabled={testing}
-                                    className="telegram-btn telegram-btn-test"
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 2: Configure the Token</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Bot Token:</label>
+                                <div className="flex space-x-2">
+                                    <input
+                                        type="text"
+                                        placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
+                                        value={formData.botToken}
+                                        onChange={(e) => setFormData({ ...formData, botToken: e.target.value })}
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                    />
+                                    <Button
+                                        onClick={testBotToken}
+                                        disabled={testing}
+                                        variant="outline"
+                                    >
+                                        {testing ? 'Testing...' : 'Test'}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {botInfo && (
+                                <div className="bg-green-50 border border-green-200 p-4 rounded-sm">
+                                    <h4 className="text-sm font-semibold text-green-800 mb-2">✅ Bot Found:</h4>
+                                    <div className="space-y-1 text-sm text-green-700">
+                                        <p><strong>Name:</strong> {botInfo.firstName}</p>
+                                        <p><strong>Username:</strong> @{botInfo.username}</p>
+                                        <p><strong>ID:</strong> {botInfo.id}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 3: Select the Replica</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Replica that will respond on Telegram:</label>
+                                <select
+                                    value={formData.replicaId}
+                                    onChange={(e) => setFormData({ ...formData, replicaId: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                                 >
-                                    {testing ? 'Testing...' : 'Test'}
-                                </button>
+                                    <option value="">Select a replica...</option>
+                                    {replicas.map(replica => (
+                                        <option key={replica.id} value={replica.id}>
+                                            {replica.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
+                    </Card>
 
-                        {botInfo && (
-                            <div className="telegram-bot-info">
-                                <h4>✅ Bot Found:</h4>
-                                <p><strong>Name:</strong> {botInfo.firstName}</p>
-                                <p><strong>Username:</strong> @{botInfo.username}</p>
-                                <p><strong>ID:</strong> {botInfo.id}</p>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="telegram-step">
-                        <h3>🤖 Step 3: Select the Replica</h3>
-                        <div className="telegram-form-group">
-                            <label>Replica that will respond on Telegram:</label>
-                            <select
-                                value={formData.replicaId}
-                                onChange={(e) => setFormData({ ...formData, replicaId: e.target.value })}
-                                className="telegram-select"
-                            >
-                                <option value="">Select a replica...</option>
-                                {replicas.map(replica => (
-                                    <option key={replica.id} value={replica.id}>
-                                        {replica.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <button
+                    <Button
                         onClick={saveTelegramIntegration}
                         disabled={saving || !botInfo || !formData.replicaId}
-                        className="telegram-btn telegram-btn-primary"
+                        className="w-full"
                     >
                         {saving ? 'Saving...' : 'Create Integration'}
-                    </button>
+                    </Button>
                 </div>
             ) : showReconfigure ? (
-                // Reconfiguração
-                <div className="telegram-reconfigure">
-                    <div className="telegram-header">
-                        <h3>🔧 Reconfigure Telegram Bot</h3>
-                        <p>Update your bot token or change the connected replica</p>
-                    </div>
+                <div className="space-y-6">
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Reconfigure Telegram Bot</h3>
+                        <p className="text-gray-600">Update your bot token or change the connected replica</p>
+                    </Card>
 
-                    <div className="telegram-step">
-                        <h3>🤖 Step 1: Enter New Bot Token (Optional)</h3>
-                        <p>Leave empty to keep the current bot, or enter a new token to change the bot</p>
-                        <div className="telegram-form-group">
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 1: Enter New Bot Token (Optional)</h3>
+                        <p className="text-gray-600 mb-4">Leave empty to keep the current bot, or enter a new token to change the bot</p>
+                        <div>
                             <input
                                 type="password"
                                 placeholder="Enter new bot token or leave empty..."
                                 value={formData.botToken}
                                 onChange={(e) => setFormData({ ...formData, botToken: e.target.value })}
-                                className="telegram-input"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                             />
                         </div>
 
                         {formData.botToken && (
-                            <div className="telegram-form-group">
-                                <button
+                            <div className="mt-4">
+                                <Button
                                     onClick={testBotToken}
                                     disabled={testing}
-                                    className="telegram-btn telegram-btn-secondary"
+                                    variant="outline"
                                 >
                                     {testing ? 'Testing...' : 'Test New Token'}
-                                </button>
+                                </Button>
                             </div>
                         )}
 
                         {botInfo && (
-                            <div className="telegram-bot-info">
-                                <h4>✅ New Bot Found:</h4>
-                                <p><strong>Name:</strong> {botInfo.firstName}</p>
-                                <p><strong>Username:</strong> @{botInfo.username}</p>
-                                <p><strong>ID:</strong> {botInfo.id}</p>
+                            <div className="bg-green-50 border border-green-200 p-4 rounded-sm mt-4">
+                                <h4 className="text-sm font-semibold text-green-800 mb-2">✅ New Bot Found:</h4>
+                                <div className="space-y-1 text-sm text-green-700">
+                                    <p><strong>Name:</strong> {botInfo.firstName}</p>
+                                    <p><strong>Username:</strong> @{botInfo.username}</p>
+                                    <p><strong>ID:</strong> {botInfo.id}</p>
+                                </div>
                             </div>
                         )}
-                    </div>
+                    </Card>
 
-                    <div className="telegram-step">
-                        <h3>🤖 Step 2: Select Replica</h3>
-                        <div className="telegram-form-group">
-                            <label>Replica that will respond on Telegram:</label>
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 2: Select Replica</h3>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Replica that will respond on Telegram:</label>
                             <select
                                 value={formData.replicaId}
                                 onChange={(e) => setFormData({ ...formData, replicaId: e.target.value })}
-                                className="telegram-select"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                             >
                                 <option value="">Select a replica...</option>
                                 {replicas.map(replica => (
@@ -439,96 +449,104 @@ const TelegramIntegration = ({ onTabChange }) => {
                                 ))}
                             </select>
                         </div>
-                    </div>
+                    </Card>
 
-                    <div className="telegram-actions">
-                        <button
+                    <div className="flex space-x-3">
+                        <Button
                             onClick={saveReconfiguration}
                             disabled={saving || !formData.replicaId}
-                            className="telegram-btn telegram-btn-primary"
+                            className="flex-1"
                         >
                             {saving ? 'Updating...' : 'Update Configuration'}
-                        </button>
+                        </Button>
 
-                        <button
+                        <Button
                             onClick={cancelReconfigure}
                             disabled={saving}
-                            className="telegram-btn telegram-btn-secondary"
+                            variant="outline"
+                            className="flex-1"
                         >
                             Cancel
-                        </button>
+                        </Button>
                     </div>
                 </div>
             ) : (
-                // Integração existente
-                <div className="telegram-existing">
-                    <div className="telegram-status">
-                        <div className="telegram-status-item">
-                            <span className="telegram-status-label">Bot:</span>
-                            <span className="telegram-status-value">@{telegramData.botUsername}</span>
+                <div className="space-y-6">
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Integration Status</h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">Bot:</span>
+                                <span className="text-sm text-gray-900">@{telegramData.botUsername}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">Status:</span>
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold ${telegramData.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                    {telegramData.isActive ? '🟢 Active' : '🔴 Inactive'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">Created on:</span>
+                                <span className="text-sm text-gray-900">
+                                    {new Date(telegramData.createdAt).toLocaleDateString('en-US')}
+                                </span>
+                            </div>
                         </div>
-                        <div className="telegram-status-item">
-                            <span className="telegram-status-label">Status:</span>
-                            <span className={`telegram-status-badge ${telegramData.isActive ? 'active' : 'inactive'}`}>
-                                {telegramData.isActive ? '🟢 Active' : '🔴 Inactive'}
-                            </span>
-                        </div>
-                        <div className="telegram-status-item">
-                            <span className="telegram-status-label">Created on:</span>
-                            <span className="telegram-status-value">
-                                {new Date(telegramData.createdAt).toLocaleDateString('en-US')}
-                            </span>
-                        </div>
-                    </div>
+                    </Card>
 
-                    <div className="telegram-config">
-                        <h3>⚙️ Configuration</h3>
-                        <div className="telegram-status-item">
-                            <span className="telegram-status-label">Connected Replica:</span>
-                            <span className="telegram-status-value">
-                                {replicas.find(r => r.id === telegramData.replicaId)?.name || 'Unknown'}
-                            </span>
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Configuration</h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">Connected Replica:</span>
+                                <span className="text-sm text-gray-900">
+                                    {replicas.find(r => r.id === telegramData.replicaId)?.name || 'Unknown'}
+                                </span>
+                            </div>
                         </div>
+                    </Card>
 
-                        <div className="telegram-actions">
-                            {!telegramData.isActive && (
-                                <button
-                                    onClick={activateBot}
-                                    disabled={activating}
-                                    className="telegram-btn telegram-btn-primary"
-                                >
-                                    {activating ? 'Activating...' : 'Activate Bot'}
-                                </button>
-                            )}
-
-                            <button
-                                onClick={startReconfigure}
-                                disabled={activating || deleting}
-                                className="telegram-btn telegram-btn-secondary"
+                    <div className="flex space-x-3">
+                        {!telegramData.isActive && (
+                            <Button
+                                onClick={activateBot}
+                                disabled={activating}
+                                className="flex-1"
                             >
-                                🔧 Reconfigure
-                            </button>
+                                {activating ? 'Activating...' : 'Activate Bot'}
+                            </Button>
+                        )}
 
-                            <button
-                                onClick={deleteIntegration}
-                                disabled={activating || deleting}
-                                className="telegram-btn telegram-btn-danger"
-                            >
-                                {deleting ? 'Deleting...' : '🗑️ Delete'}
-                            </button>
-                        </div>
+                        <Button
+                            onClick={startReconfigure}
+                            disabled={activating || deleting}
+                            variant="outline"
+                            className="flex-1"
+                        >
+                            🔧 Reconfigure
+                        </Button>
+
+                        <Button
+                            onClick={deleteIntegration}
+                            disabled={activating || deleting}
+                            variant="danger"
+                            className="flex-1"
+                        >
+                            {deleting ? 'Deleting...' : '🗑️ Delete'}
+                        </Button>
                     </div>
 
                     {telegramData.isActive && (
-                        <div className="telegram-instructions">
-                            <h3>📱 How to use:</h3>
-                            <ol>
-                                <li>Your customers can find your bot at: <strong>@{telegramData.botUsername}</strong></li>
-                                <li>They start a conversation and ask questions about properties</li>
-                                <li>Your bot responds automatically using the replica's knowledge base</li>
-                                <li>All conversations are saved in Sensay for analysis</li>
+                        <Card>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">📱 How to use:</h3>
+                            <ol className="space-y-2 text-gray-700">
+                                <li>1. Your customers can find your bot at: <strong>@{telegramData.botUsername}</strong></li>
+                                <li>2. They start a conversation and ask questions about properties</li>
+                                <li>3. Your bot responds automatically using the replica's knowledge base</li>
+                                <li>4. All conversations are saved in Sensay for analysis</li>
                             </ol>
-                        </div>
+                        </Card>
                     )}
                 </div>
             )}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { replicasAPI, integrationsAPI } from '../../services/api'
-import './Widget.css'
+import { Button, Card, Select, Loading } from '../UI'
 import NoReplicas from '../NoReplicas/NoReplicas'
 
 const Widget = ({ onTabChange }) => {
@@ -51,44 +51,12 @@ const Widget = ({ onTabChange }) => {
             }
 
             setReplicas(allReplicas)
+
         } catch (error) {
-            console.error('Error loading data:', error)
-            setError('Failed to load data. Please try again.')
+            console.error('Error loading widget data:', error)
+            setError('Failed to load widget data. Please try again.')
         } finally {
             setLoading(false)
-        }
-    }
-
-    const generateWidgetCode = () => {
-        if (!selectedReplica) {
-            alert('Please select a replica first')
-            return
-        }
-
-        const userId = currentUser.id || currentUser.sensayUserId || 'user-not-found'
-
-        const code = `<!-- Real Estate AI Chat Widget -->
-<script src="https://yourdomain.com/chat-widget.js"></script>
-<script>
-  RealEstateChat.init({
-    userId: '${userId}',
-    replicaUuid: '${selectedReplica.uuid}',
-    position: '${widgetConfig.position}',
-    theme: '${widgetConfig.theme}',
-    primaryColor: '${widgetConfig.primaryColor}'
-  });
-</script>`
-
-        setGeneratedCode(code)
-    }
-
-    const copyToClipboard = async () => {
-        try {
-            await navigator.clipboard.writeText(generatedCode)
-            alert('Code copied to clipboard!')
-        } catch (error) {
-            console.error('Failed to copy:', error)
-            alert('Failed to copy code. Please copy manually.')
         }
     }
 
@@ -99,11 +67,49 @@ const Widget = ({ onTabChange }) => {
         }))
     }
 
+    const generateWidgetCode = () => {
+        if (!selectedReplica || !currentIntegration) {
+            setError('Please select a replica and ensure integration is available')
+            return
+        }
+
+        const widgetCode = `<!-- Sensay AI Chat Widget -->
+<script>
+  (function() {
+    var script = document.createElement('script');
+    script.src = 'https://sensay.ai/widget/chat-widget.min.js';
+    script.async = true;
+    script.onload = function() {
+      SensayWidget.init({
+        replicaId: '${selectedReplica.uuid}',
+        integrationId: '${currentIntegration.id}',
+        position: '${widgetConfig.position}',
+        theme: '${widgetConfig.theme}',
+        primaryColor: '${widgetConfig.primaryColor}',
+        apiKey: '${currentIntegration.apiKey || 'YOUR_API_KEY'}'
+      });
+    };
+    document.head.appendChild(script);
+  })();
+</script>`
+
+        setGeneratedCode(widgetCode)
+    }
+
+    const copyToClipboard = async () => {
+        try {
+            await navigator.clipboard.writeText(generatedCode)
+            alert('Widget code copied to clipboard!')
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error)
+            alert('Failed to copy to clipboard. Please copy manually.')
+        }
+    }
+
     if (loading) {
         return (
-            <div className="widget-loading">
-                <div className="spinner"></div>
-                <p>Loading widget generator...</p>
+            <div className="container-admin py-8">
+                <Loading message="Loading widget generator..." />
             </div>
         )
     }
@@ -114,139 +120,127 @@ const Widget = ({ onTabChange }) => {
     }
 
     return (
-        <div className="widget">
-            <div className="widget-header">
-                <h1>Widget Generator</h1>
-                <p>Generate embed code for your AI chat widget</p>
+        <div className="container-admin py-8">
+            <div className="mb-8">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-2">Widget Generator</h1>
+                <p className="text-gray-600">Generate embed code for your AI chat widget</p>
             </div>
 
             {error && (
-                <div className="error-message">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-6">
                     {error}
                 </div>
             )}
 
             {currentIntegration && (
-                <div className="integration-info">
-                    <small>Integration: {currentIntegration.organizationName}</small>
+                <div className="mb-6">
+                    <p className="text-sm text-gray-600">
+                        Integration: {currentIntegration.organizationName}
+                    </p>
                 </div>
             )}
 
-            <div className="widget-content">
-                <div className="widget-config">
-                    <h2>Widget Configuration</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Card>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-6">Widget Configuration</h2>
 
-                    <div className="config-section">
-                        <h3>Replica Selection</h3>
-                        <div className="form-group">
-                            <label htmlFor="replica">Select Replica *</label>
-                            <select
-                                id="replica"
+                    <div className="space-y-6">
+                        <div>
+                            <h3 className="text-sm font-medium text-gray-900 mb-3">Replica Selection</h3>
+                            <Select
+                                label="Select Replica *"
                                 value={selectedReplica?.uuid || ''}
                                 onChange={(e) => {
                                     const replica = replicas.find(r => r.uuid === e.target.value)
                                     setSelectedReplica(replica)
                                 }}
-                                required
-                            >
-                                <option value="">Choose a replica...</option>
-                                {replicas.map(replica => (
-                                    <option key={replica.uuid} value={replica.uuid}>
-                                        {replica.name} ({replica.uuid})
-                                    </option>
-                                ))}
-                            </select>
-                            <small>Select the replica that will handle the chat conversations</small>
-                        </div>
-                    </div>
-
-                    <div className="config-section">
-                        <h3>Widget Appearance</h3>
-
-                        <div className="form-group">
-                            <label htmlFor="position">Position</label>
-                            <select
-                                id="position"
-                                value={widgetConfig.position}
-                                onChange={(e) => handleConfigChange('position', e.target.value)}
-                            >
-                                <option value="bottom-right">Bottom Right</option>
-                                <option value="bottom-left">Bottom Left</option>
-                                <option value="top-right">Top Right</option>
-                                <option value="top-left">Top Left</option>
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="theme">Theme</label>
-                            <select
-                                id="theme"
-                                value={widgetConfig.theme}
-                                onChange={(e) => handleConfigChange('theme', e.target.value)}
-                            >
-                                <option value="auto">Auto (System)</option>
-                                <option value="light">Light</option>
-                                <option value="dark">Dark</option>
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="primaryColor">Primary Color</label>
-                            <input
-                                type="color"
-                                id="primaryColor"
-                                value={widgetConfig.primaryColor}
-                                onChange={(e) => handleConfigChange('primaryColor', e.target.value)}
+                                options={replicas.map(replica => ({
+                                    value: replica.uuid,
+                                    label: `${replica.name} (${replica.uuid})`
+                                }))}
+                                placeholder="Choose a replica..."
                             />
-                            <small>Choose the primary color for the widget</small>
+                            <p className="text-xs text-gray-500 mt-1">Select the replica that will handle the chat conversations</p>
                         </div>
-                    </div>
 
-                    <div className="config-section">
-                        <h3>User Information</h3>
-                        <div className="user-info">
-                            <p><strong>User ID:</strong> {currentUser.id || currentUser.sensayUserId || 'Not found'}</p>
-                            <p><strong>Role:</strong> {currentUser.role || 'user'}</p>
-                            <p><strong>API Key:</strong> Configured on server side</p>
+                        <div>
+                            <h3 className="text-sm font-medium text-gray-900 mb-3">Widget Appearance</h3>
+
+                            <div className="space-y-4">
+                                <Select
+                                    label="Position"
+                                    value={widgetConfig.position}
+                                    onChange={(e) => handleConfigChange('position', e.target.value)}
+                                    options={[
+                                        { value: 'bottom-right', label: 'Bottom Right' },
+                                        { value: 'bottom-left', label: 'Bottom Left' },
+                                        { value: 'top-right', label: 'Top Right' },
+                                        { value: 'top-left', label: 'Top Left' }
+                                    ]}
+                                />
+
+                                <Select
+                                    label="Theme"
+                                    value={widgetConfig.theme}
+                                    onChange={(e) => handleConfigChange('theme', e.target.value)}
+                                    options={[
+                                        { value: 'auto', label: 'Auto (System)' },
+                                        { value: 'light', label: 'Light' },
+                                        { value: 'dark', label: 'Dark' }
+                                    ]}
+                                />
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Primary Color
+                                    </label>
+                                    <input
+                                        type="color"
+                                        className="w-full h-10 border border-gray-300 rounded-sm"
+                                        value={widgetConfig.primaryColor}
+                                        onChange={(e) => handleConfigChange('primaryColor', e.target.value)}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <button
-                        className="btn btn-primary"
-                        onClick={generateWidgetCode}
-                        disabled={!selectedReplica}
-                    >
-                        Generate Widget Code
-                    </button>
-                </div>
+                        <div>
+                            <h3 className="text-sm font-medium text-gray-900 mb-3">User Information</h3>
+                            <div className="space-y-2 text-sm">
+                                <p><span className="font-medium">User ID:</span> {currentUser.id || currentUser.sensayUserId || 'Not found'}</p>
+                                <p><span className="font-medium">Role:</span> {currentUser.role || 'user'}</p>
+                                <p><span className="font-medium">API Key:</span> Configured on server side</p>
+                            </div>
+                        </div>
+
+                        <Button
+                            onClick={generateWidgetCode}
+                            disabled={!selectedReplica}
+                            className="w-full"
+                        >
+                            Generate Widget Code
+                        </Button>
+                    </div>
+                </Card>
 
                 {generatedCode && (
-                    <div className="generated-code">
-                        <div className="code-header">
-                            <h2>Generated Widget Code</h2>
-                            <button
-                                className="btn btn-secondary"
+                    <Card>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-gray-900">Generated Widget Code</h2>
+                            <Button
+                                variant="outline"
                                 onClick={copyToClipboard}
                             >
                                 Copy to Clipboard
-                            </button>
+                            </Button>
                         </div>
 
-                        <div className="code-preview">
-                            <pre><code>{generatedCode}</code></pre>
+                        <div className="bg-gray-900 text-gray-100 p-4 rounded-sm overflow-x-auto">
+                            <pre className="text-sm">
+                                <code>{generatedCode}</code>
+                            </pre>
                         </div>
-
-                        <div className="code-instructions">
-                            <h3>How to use:</h3>
-                            <ol>
-                                <li>Copy the code above</li>
-                                <li>Paste it into your website's HTML, preferably before the closing <code>&lt;/body&gt;</code> tag</li>
-                                <li>Make sure the widget script is accessible at the URL specified in the script src</li>
-                                <li>The widget will automatically initialize when the page loads</li>
-                                <li><strong>Note:</strong> The API Key is automatically configured on our server</li>
-                            </ol>
-                        </div>
-                    </div>
+                    </Card>
                 )}
             </div>
         </div>

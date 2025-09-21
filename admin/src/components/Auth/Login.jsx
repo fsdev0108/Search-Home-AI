@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { authAPI } from '../../services/api'
-import './Auth.css'
+import { Button, Input, Card, Loading } from '../UI'
 
 const Login = ({ onLogin }) => {
     const [formData, setFormData] = useState({
@@ -46,25 +46,26 @@ const Login = ({ onLogin }) => {
     }
 
     return (
-        <div className="auth-container">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <h1>Herainov Admin</h1>
-                    <p>Sign in to your account</p>
-                </div>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full">
+                <Card className="text-center">
+                    <div className="mb-8">
+                        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+                            Herainov
+                        </h1>
+                        <p className="text-gray-600">Sign in to your account</p>
+                    </div>
 
-                <form onSubmit={handleSubmit} className="auth-form">
-                    {error && (
-                        <div className="error-message">
-                            {error}
-                        </div>
-                    )}
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
+                                {error}
+                            </div>
+                        )}
 
-                    <div className="form-group">
-                        <label htmlFor="email">Email</label>
-                        <input
+                        <Input
+                            label="Email"
                             type="email"
-                            id="email"
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
@@ -72,13 +73,10 @@ const Login = ({ onLogin }) => {
                             placeholder="Enter your email"
                             disabled={loading}
                         />
-                    </div>
 
-                    <div className="form-group">
-                        <label htmlFor="password">Password</label>
-                        <input
+                        <Input
+                            label="Password"
                             type="password"
-                            id="password"
                             name="password"
                             value={formData.password}
                             onChange={handleInputChange}
@@ -86,15 +84,16 @@ const Login = ({ onLogin }) => {
                             placeholder="Enter your password"
                             disabled={loading}
                         />
-                    </div>
-                    <button
-                        type="submit"
-                        className="btn btn-primary auth-submit"
-                        disabled={loading}
-                    >
-                        {loading ? 'Signing in...' : 'Sign In'}
-                    </button>
-                </form>
+
+                        <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={loading}
+                        >
+                            {loading ? 'Signing in...' : 'Sign In'}
+                        </Button>
+                    </form>
+                </Card>
             </div>
         </div>
     )

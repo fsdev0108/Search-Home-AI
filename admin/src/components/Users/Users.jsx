@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import './Users.css'
 import Modal from '../Modal/Modal'
+import { Button, Input, Card, Loading } from '../UI'
 import { integrationsAPI, usersAPI } from '../../services/api'
 
 const Users = () => {
@@ -102,77 +102,95 @@ const Users = () => {
 
     if (loading) {
         return (
-            <div className="users-loading">
-                <div className="spinner"></div>
-                <p>Loading users...</p>
+            <div className="container-admin py-8">
+                <Loading message="Loading users..." />
             </div>
         )
     }
 
     return (
-        <div className="users">
-            <div className="users-header">
-                <h1>Manage Users</h1>
-                {currentIntegration && (
-                    <div className="integration-info">
-                        <span>Integration: {currentIntegration.organizationName}</span>
-                    </div>
-                )}
-                <button
-                    className="btn btn-primary"
-                    onClick={() => setShowCreateModal(true)}
-                >
+        <div className="container-admin py-8">
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-2xl font-semibold text-gray-900 mb-2">Manage Users</h1>
+                    {currentIntegration && (
+                        <p className="text-gray-600">
+                            Integration: {currentIntegration.organizationName}
+                        </p>
+                    )}
+                </div>
+                <Button onClick={() => setShowCreateModal(true)}>
                     + New User
-                </button>
+                </Button>
             </div>
 
             {error && (
-                <div className="error-message">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-6">
                     {error}
                 </div>
             )}
 
-            <div className="table-container">
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.map(user => (
-                            <tr key={user.id}>
-                                <td>{user.id}</td>
-                                <td>{user.name}</td>
-                                <td>{user.email}</td>
-                                <td>
-                                    <span className="status-badge status-active">Active</span>
-                                </td>
-                                <td>
-                                    <div className="action-buttons">
-                                        <button
-                                            className="btn btn-sm btn-secondary"
+            <Card>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ID
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Name
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Email
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {users.map(user => (
+                                <tr key={user.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {user.id}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {user.name}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {user.email}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="inline-flex px-2 py-1 text-xs font-semibold bg-green-100 text-green-800">
+                                            Active
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
                                             onClick={() => alert('Edit functionality in development')}
                                         >
                                             Edit
-                                        </button>
-                                        <button
-                                            className="btn btn-sm btn-danger"
+                                        </Button>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
                                             onClick={() => handleDeleteUser(user.id)}
                                         >
                                             Delete
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
 
             {/* Create User Modal */}
             <Modal

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import './WhatsAppIntegration.css'
 import API from '../../services/api'
+import { Button, Card, Input, Select, Loading } from '../UI'
 import NoReplicas from '../NoReplicas/NoReplicas'
 
 const WhatsAppIntegration = ({ onTabChange }) => {
@@ -221,7 +221,11 @@ const WhatsAppIntegration = ({ onTabChange }) => {
     }
 
     if (loading) {
-        return <div className="whatsapp-loading">Loading WhatsApp integration...</div>
+        return (
+            <div className="container-admin py-8">
+                <Loading message="Loading WhatsApp integration..." />
+            </div>
+        )
     }
 
     if (replicas.length === 0) {
@@ -229,52 +233,54 @@ const WhatsAppIntegration = ({ onTabChange }) => {
     }
 
     return (
-        <div className="whatsapp-integration">
-            <div className="whatsapp-header">
-                <h2>💬 WhatsApp Integration</h2>
-                <p>Configure your WhatsApp Business number for automated customer service</p>
+        <div className="container-admin py-8">
+            <div className="mb-8">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-2">WhatsApp Integration</h1>
+                <p className="text-gray-600">Configure your WhatsApp Business number for automated customer service</p>
             </div>
 
             {error && (
-                <div className="whatsapp-alert whatsapp-alert-error">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-6">
                     {error}
                 </div>
             )}
 
             {success && (
-                <div className="whatsapp-alert whatsapp-alert-success">
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 mb-6">
                     {success}
                 </div>
             )}
 
             {!whatsappData ? (
-                <div className="whatsapp-setup">
-                    <div className="whatsapp-step">
-                        <h3>📋 MVP Setup - Server Credentials</h3>
-                        <div className="whatsapp-info-box">
-                            <p><strong>✅ Server Configuration:</strong> Twilio credentials are already configured on the server</p>
-                            <p><strong>📱 WhatsApp Number:</strong> +1 415 523 8886 (Sandbox)</p>
-                            <p><strong>🔗 Webhook:</strong> Automatically configured</p>
+                <div className="space-y-6">
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">MVP Setup - Server Credentials</h3>
+                        <div className="bg-blue-50 border border-blue-200 p-4 rounded-sm mb-4">
+                            <div className="space-y-2 text-sm text-blue-700">
+                                <p><strong>✅ Server Configuration:</strong> Twilio credentials are already configured on the server</p>
+                                <p><strong>📱 WhatsApp Number:</strong> +1 415 523 8886 (Sandbox)</p>
+                                <p><strong>🔗 Webhook:</strong> Automatically configured</p>
+                            </div>
                         </div>
 
-                        <button
+                        <Button
                             onClick={testServerCredentials}
                             disabled={testing}
-                            className="whatsapp-btn whatsapp-btn-test"
+                            variant="outline"
                         >
                             {testing ? 'Testing...' : 'Test Server Connection'}
-                        </button>
-                    </div>
+                        </Button>
+                    </Card>
 
-                    <div className="whatsapp-step">
-                        <h3>🤖 Select the Replica</h3>
-                        <p>Choose which replica will respond to WhatsApp messages:</p>
-                        <div className="whatsapp-form-group">
-                            <label>Replica that will respond on WhatsApp:</label>
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Select the Replica</h3>
+                        <p className="text-gray-600 mb-4">Choose which replica will respond to WhatsApp messages:</p>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Replica that will respond on WhatsApp:</label>
                             <select
                                 value={formData.replicaId}
                                 onChange={(e) => setFormData({ ...formData, replicaId: e.target.value })}
-                                className="whatsapp-select"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                             >
                                 <option value="">Select a replica...</option>
                                 {replicas.map(replica => (
@@ -284,67 +290,69 @@ const WhatsAppIntegration = ({ onTabChange }) => {
                                 ))}
                             </select>
                         </div>
-                    </div>
+                    </Card>
 
-                    <button
+                    <Button
                         onClick={saveWhatsAppIntegration}
                         disabled={saving || !formData.replicaId}
-                        className="whatsapp-btn whatsapp-btn-primary"
+                        className="w-full"
                     >
                         {saving ? 'Creating...' : 'Create WhatsApp Integration'}
-                    </button>
+                    </Button>
                 </div>
             ) : showReconfigure ? (
-                <div className="whatsapp-reconfigure">
-                    <div className="whatsapp-header">
-                        <h3>🔧 Reconfigure WhatsApp Integration</h3>
-                        <p>Update your Twilio credentials or change the connected replica</p>
-                    </div>
+                <div className="space-y-6">
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Reconfigure WhatsApp Integration</h3>
+                        <p className="text-gray-600">Update your Twilio credentials or change the connected replica</p>
+                    </Card>
 
-                    <div className="whatsapp-step">
-                        <h3>🔑 Update Credentials (Optional)</h3>
-                        <div className="whatsapp-form-group">
-                            <label>Account SID:</label>
-                            <input
-                                type="text"
-                                placeholder="Leave empty to keep current..."
-                                value={formData.accountSid}
-                                onChange={(e) => setFormData({ ...formData, accountSid: e.target.value })}
-                                className="whatsapp-input"
-                            />
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Credentials (Optional)</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Account SID:</label>
+                                <input
+                                    type="text"
+                                    placeholder="Leave empty to keep current..."
+                                    value={formData.accountSid}
+                                    onChange={(e) => setFormData({ ...formData, accountSid: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Auth Token:</label>
+                                <input
+                                    type="password"
+                                    placeholder="Leave empty to keep current..."
+                                    value={formData.authToken}
+                                    onChange={(e) => setFormData({ ...formData, authToken: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp Number (MVP - Sandbox):</label>
+                                <input
+                                    type="text"
+                                    value="+14155238886"
+                                    disabled
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-sm bg-gray-50 text-gray-500"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Using Twilio Sandbox for MVP testing</p>
+                            </div>
                         </div>
+                    </Card>
 
-                        <div className="whatsapp-form-group">
-                            <label>Auth Token:</label>
-                            <input
-                                type="password"
-                                placeholder="Leave empty to keep current..."
-                                value={formData.authToken}
-                                onChange={(e) => setFormData({ ...formData, authToken: e.target.value })}
-                                className="whatsapp-input"
-                            />
-                        </div>
-
-                        <div className="whatsapp-form-group">
-                            <label>WhatsApp Number (MVP - Sandbox):</label>
-                            <input
-                                type="text"
-                                value="+14155238886"
-                                disabled
-                                className="whatsapp-input whatsapp-input-disabled"
-                            />
-                            <small className="whatsapp-help-text">Using Twilio Sandbox for MVP testing</small>
-                        </div>
-                    </div>
-
-                    <div className="whatsapp-step">
-                        <h3>🤖 Select Replica</h3>
-                        <div className="whatsapp-form-group">
-                            <label>Replica that will respond on WhatsApp:</label>
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Replica</h3>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Replica that will respond on WhatsApp:</label>
                             <select
                                 value={formData.replicaId}
                                 onChange={(e) => setFormData({ ...formData, replicaId: e.target.value })}
-                                className="whatsapp-select"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                             >
                                 <option value="">Select a replica...</option>
                                 {replicas.map(replica => (
@@ -354,96 +362,105 @@ const WhatsAppIntegration = ({ onTabChange }) => {
                                 ))}
                             </select>
                         </div>
-                    </div>
+                    </Card>
 
-                    <div className="whatsapp-actions">
-                        <button
+                    <div className="flex space-x-3">
+                        <Button
                             onClick={saveReconfiguration}
                             disabled={saving || !formData.replicaId}
-                            className="whatsapp-btn whatsapp-btn-primary"
+                            className="flex-1"
                         >
                             {saving ? 'Updating...' : 'Update Configuration'}
-                        </button>
+                        </Button>
 
-                        <button
+                        <Button
                             onClick={cancelReconfigure}
                             disabled={saving}
-                            className="whatsapp-btn whatsapp-btn-secondary"
+                            variant="outline"
+                            className="flex-1"
                         >
                             Cancel
-                        </button>
+                        </Button>
                     </div>
                 </div>
             ) : (
-                <div className="whatsapp-existing">
-                    <div className="whatsapp-status">
-                        <div className="whatsapp-status-item">
-                            <span className="whatsapp-status-label">Phone Number:</span>
-                            <span className="whatsapp-status-value">{whatsappData.phoneNumber}</span>
+                <div className="space-y-6">
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Integration Status</h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">Phone Number:</span>
+                                <span className="text-sm text-gray-900">{whatsappData.phoneNumber}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">Status:</span>
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold ${whatsappData.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                    {whatsappData.isActive ? '🟢 Active' : '🔴 Inactive'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">Created on:</span>
+                                <span className="text-sm text-gray-900">
+                                    {new Date(whatsappData.createdAt).toLocaleDateString('en-US')}
+                                </span>
+                            </div>
                         </div>
-                        <div className="whatsapp-status-item">
-                            <span className="whatsapp-status-label">Status:</span>
-                            <span className={`whatsapp-status-badge ${whatsappData.isActive ? 'active' : 'inactive'}`}>
-                                {whatsappData.isActive ? '🟢 Active' : '🔴 Inactive'}
-                            </span>
-                        </div>
-                        <div className="whatsapp-status-item">
-                            <span className="whatsapp-status-label">Created on:</span>
-                            <span className="whatsapp-status-value">
-                                {new Date(whatsappData.createdAt).toLocaleDateString('en-US')}
-                            </span>
-                        </div>
-                    </div>
+                    </Card>
 
-                    <div className="whatsapp-config">
-                        <h3>⚙️ Configuration</h3>
-                        <div className="whatsapp-status-item">
-                            <span className="whatsapp-status-label">Connected Replica:</span>
-                            <span className="whatsapp-status-value">
-                                {replicas.find(r => r.id === whatsappData.replicaId)?.name || 'Unknown'}
-                            </span>
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Configuration</h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">Connected Replica:</span>
+                                <span className="text-sm text-gray-900">
+                                    {replicas.find(r => r.id === whatsappData.replicaId)?.name || 'Unknown'}
+                                </span>
+                            </div>
                         </div>
+                    </Card>
 
-                        <div className="whatsapp-actions">
-                            {!whatsappData.isActive && (
-                                <button
-                                    onClick={activateIntegration}
-                                    disabled={activating}
-                                    className="whatsapp-btn whatsapp-btn-primary"
-                                >
-                                    {activating ? 'Activating...' : 'Activate Integration'}
-                                </button>
-                            )}
-
-                            <button
-                                onClick={startReconfigure}
-                                disabled={activating || deleting}
-                                className="whatsapp-btn whatsapp-btn-secondary"
+                    <div className="flex space-x-3">
+                        {!whatsappData.isActive && (
+                            <Button
+                                onClick={activateIntegration}
+                                disabled={activating}
+                                className="flex-1"
                             >
-                                🔧 Reconfigure
-                            </button>
+                                {activating ? 'Activating...' : 'Activate Integration'}
+                            </Button>
+                        )}
 
-                            <button
-                                onClick={deleteIntegration}
-                                disabled={activating || deleting}
-                                className="whatsapp-btn whatsapp-btn-danger"
-                            >
-                                {deleting ? 'Deleting...' : '🗑️ Delete'}
-                            </button>
-                        </div>
+                        <Button
+                            onClick={startReconfigure}
+                            disabled={activating || deleting}
+                            variant="outline"
+                            className="flex-1"
+                        >
+                            🔧 Reconfigure
+                        </Button>
+
+                        <Button
+                            onClick={deleteIntegration}
+                            disabled={activating || deleting}
+                            variant="danger"
+                            className="flex-1"
+                        >
+                            {deleting ? 'Deleting...' : '🗑️ Delete'}
+                        </Button>
                     </div>
 
                     {whatsappData.isActive && (
-                        <div className="whatsapp-instructions">
-                            <h3>📱 How to use (MVP):</h3>
-                            <ol>
-                                <li><strong>Configure webhook in Twilio Console:</strong> <code>https://sensay-search-home-ai-production.up.railway.app/api/v1/twilio/webhook/{currentIntegration.id}</code></li>
-                                <li><strong>For sandbox testing:</strong> Send "join &lt;keyword&gt;" to +1 415 523 8886</li>
-                                <li><strong>Then send any message</strong> to test the integration</li>
-                                <li>Your bot responds automatically using the selected replica's knowledge base</li>
-                                <li>All conversations are saved in Sensay for analysis</li>
+                        <Card>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">📱 How to use (MVP):</h3>
+                            <ol className="space-y-2 text-gray-700">
+                                <li>1. <strong>Configure webhook in Twilio Console:</strong> <code className="bg-gray-100 px-2 py-1 rounded text-sm">https://sensay-search-home-ai-production.up.railway.app/api/v1/twilio/webhook/{currentIntegration.id}</code></li>
+                                <li>2. <strong>For sandbox testing:</strong> Send "join &lt;keyword&gt;" to +1 415 523 8886</li>
+                                <li>3. <strong>Then send any message</strong> to test the integration</li>
+                                <li>4. Your bot responds automatically using the selected replica's knowledge base</li>
+                                <li>5. All conversations are saved in Sensay for analysis</li>
                             </ol>
-                        </div>
+                        </Card>
                     )}
                 </div>
             )}

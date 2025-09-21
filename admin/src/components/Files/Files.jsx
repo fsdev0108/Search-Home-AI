@@ -114,7 +114,7 @@ const Files = () => {
       }
 
       const integration = integrationsResponse.data[0]
-      const response = await fetch(`http://localhost:3000/api/v1/integrations/${integration.id}/replicas/${replicaToUse}/upload`, {
+      const response = await fetch(`${VITE_API_BASE_URL}/v1/integrations/${integration.id}/replicas/${replicaToUse}/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
@@ -185,7 +185,7 @@ const Files = () => {
 
       // Try to delete from backend if it's a real file
       if (!fileId.startsWith('file_')) {
-        const response = await fetch(`http://localhost:3000/api/v1/files/${fileId}`, {
+        const response = await fetch(`${VITE_API_BASE_URL}/v1/files/${fileId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`

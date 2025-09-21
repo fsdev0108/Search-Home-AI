@@ -1,4 +1,4 @@
-# 🏠 Sensay Admin Panel - Testing Guide
+# 🏠 Herainov Panel - Testing Guide
 
 Administrative panel for managing users, replicas and files in the Sensay system for real estate.
 

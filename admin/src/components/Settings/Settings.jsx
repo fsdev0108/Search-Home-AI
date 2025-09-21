@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { integrationsAPI, hubspotAPI, replicasAPI } from '../../services/api'
-import './Settings.css'
+import { Button, Card, Input, Loading } from '../UI'
 import NoReplicas from '../NoReplicas/NoReplicas'
 
 const Settings = ({ onTabChange }) => {
@@ -227,189 +227,201 @@ const Settings = ({ onTabChange }) => {
     }
 
     return (
-        <div className="settings">
-            <div className="settings-header">
-                <h2>Settings</h2>
-                <p>Configure integrations and system settings</p>
+        <div className="container-admin py-8">
+            <div className="mb-8">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-2">Settings</h1>
+                <p className="text-gray-600">Configure integrations and system settings</p>
                 {currentIntegration && (
-                    <div className="current-organization">
-                        <span className="org-label">Current Integration:</span>
-                        <span className="org-name">{currentIntegration.organizationName}</span>
+                    <div className="mt-4 p-4 bg-gray-50 border border-gray-200">
+                        <span className="text-sm font-medium text-gray-700">Current Integration: </span>
+                        <span className="text-sm text-gray-900">{currentIntegration.organizationName}</span>
                     </div>
                 )}
             </div>
 
-            <div className="settings-content">
+            <div className="space-y-6">
                 {/* Sensay Integration Section */}
                 {!currentIntegration && (
-                    <div className="integration-section">
-                        <div className="integration-header">
-                            <h3>Sensay Integration Setup</h3>
-                        </div>
-                        <div className="integration-content">
-                            <div className="connection-form">
-                                <div className="form-group">
-                                    <label htmlFor="organizationName">Organization Name</label>
-                                    <input
-                                        type="text"
-                                        id="organizationName"
-                                        value={organizationName}
-                                        onChange={(e) => setOrganizationName(e.target.value)}
-                                        placeholder="Enter your organization name"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="organizationSecret">Organization Secret</label>
-                                    <input
-                                        type="password"
-                                        id="organizationSecret"
-                                        value={organizationSecret}
-                                        onChange={(e) => setOrganizationSecret(e.target.value)}
-                                        placeholder="Enter your Sensay organization secret"
-                                    />
-                                </div>
-                                <button
-                                    className="connect-btn"
-                                    onClick={createIntegration}
-                                    disabled={!organizationName.trim() || !organizationSecret.trim()}
-                                >
-                                    Create Integration
-                                </button>
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Sensay Integration Setup</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-2">Organization Name</label>
+                                <input
+                                    type="text"
+                                    id="organizationName"
+                                    value={organizationName}
+                                    onChange={(e) => setOrganizationName(e.target.value)}
+                                    placeholder="Enter your organization name"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                />
                             </div>
+                            <div>
+                                <label htmlFor="organizationSecret" className="block text-sm font-medium text-gray-700 mb-2">Organization Secret</label>
+                                <input
+                                    type="password"
+                                    id="organizationSecret"
+                                    value={organizationSecret}
+                                    onChange={(e) => setOrganizationSecret(e.target.value)}
+                                    placeholder="Enter your Sensay organization secret"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                />
+                            </div>
+                            <Button
+                                onClick={createIntegration}
+                                disabled={!organizationName.trim() || !organizationSecret.trim()}
+                                className="w-full"
+                            >
+                                Create Integration
+                            </Button>
                         </div>
-                    </div>
+                    </Card>
                 )}
 
                 {/* HubSpot Integration Section - Only for regular users */}
                 {!isAdmin && currentIntegration && (
-                    <div className="integration-section">
-                        <div className="integration-header">
-                            <h3>HubSpot Integration</h3>
-                            <div className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
+                    <Card>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">HubSpot Integration</h3>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold ${isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                }`}>
                                 {isConnected ? 'Connected' : 'Disconnected'}
-                            </div>
+                            </span>
                         </div>
 
-                        <div className="integration-content">
-                            {!isConnected ? (
-                                <div className="connection-form">
-                                    <div className="form-group">
-                                        <label htmlFor="replicaSelect">Select Replica for Integration</label>
-                                        <select
-                                            id="replicaSelect"
-                                            value={selectedReplicaId}
-                                            onChange={(e) => setSelectedReplicaId(e.target.value)}
-                                            disabled={isConnecting}
-                                        >
-                                            <option value="">Choose a replica...</option>
-                                            {replicas.map(replica => (
-                                                <option key={replica.uuid} value={replica.uuid}>
-                                                    {replica.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <small>
-                                            Select which replica will receive the HubSpot property data
-                                        </small>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="apiKey">HubSpot API Key</label>
-                                        <input
-                                            type="password"
-                                            id="apiKey"
-                                            value={hubspotApiKey}
-                                            onChange={(e) => setHubspotApiKey(e.target.value)}
-                                            placeholder="Enter your HubSpot API key"
-                                            disabled={isConnecting}
-                                        />
-                                        <small>
-                                            You can find your API key in HubSpot Settings → Integrations → Private Apps
-                                        </small>
-                                    </div>
-
-                                    <button
-                                        className="connect-btn"
-                                        onClick={handleConnectHubSpot}
-                                        disabled={isConnecting || !hubspotApiKey.trim() || !selectedReplicaId}
+                        {!isConnected ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <label htmlFor="replicaSelect" className="block text-sm font-medium text-gray-700 mb-2">Select Replica for Integration</label>
+                                    <select
+                                        id="replicaSelect"
+                                        value={selectedReplicaId}
+                                        onChange={(e) => setSelectedReplicaId(e.target.value)}
+                                        disabled={isConnecting}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                                     >
-                                        {isConnecting ? 'Connecting...' : 'Connect to HubSpot'}
-                                    </button>
+                                        <option value="">Choose a replica...</option>
+                                        {replicas.map(replica => (
+                                            <option key={replica.uuid} value={replica.uuid}>
+                                                {replica.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Select which replica will receive the HubSpot property data
+                                    </p>
                                 </div>
-                            ) : (
-                                <div className="connection-info">
-                                    <div className="info-grid">
-                                        <div className="info-item">
-                                            <label>API Key</label>
-                                            <span className="api-key-display">
-                                                {hubspotApiKey.substring(0, 8)}...{hubspotApiKey.substring(hubspotApiKey.length - 4)}
-                                            </span>
-                                        </div>
-                                        <div className="info-item">
-                                            <label>Properties Synced</label>
-                                            <span>{propertiesCount} properties</span>
-                                        </div>
-                                        <div className="info-item">
-                                            <label>Last Sync</label>
-                                            <span>{lastSync ? lastSync.toLocaleString() : 'Never'}</span>
-                                        </div>
-                                        <div className="info-item">
-                                            <label>Target Replica</label>
-                                            <span>{replicas.find(r => r.uuid === selectedReplicaId)?.name || 'Unknown'}</span>
-                                        </div>
-                                        <div className="info-item">
-                                            <label>AI Agent Status</label>
-                                            <span className="ai-status">Integrated</span>
-                                        </div>
-                                    </div>
 
-                                    <div className="connection-actions">
-                                        <button
-                                            className="sync-btn"
-                                            onClick={handleManualSync}
-                                            disabled={isConnecting}
-                                        >
-                                            {isConnecting ? 'Syncing...' : 'Sync Now'}
-                                        </button>
-                                        <button
-                                            className="disconnect-btn"
-                                            onClick={handleDisconnect}
-                                        >
-                                            Disconnect
-                                        </button>
+                                <div>
+                                    <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700 mb-2">HubSpot API Key</label>
+                                    <input
+                                        type="password"
+                                        id="apiKey"
+                                        value={hubspotApiKey}
+                                        onChange={(e) => setHubspotApiKey(e.target.value)}
+                                        placeholder="Enter your HubSpot API key"
+                                        disabled={isConnecting}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        You can find your API key in HubSpot Settings → Integrations → Private Apps
+                                    </p>
+                                </div>
+
+                                <Button
+                                    onClick={handleConnectHubSpot}
+                                    disabled={isConnecting || !hubspotApiKey.trim() || !selectedReplicaId}
+                                    className="w-full"
+                                >
+                                    {isConnecting ? 'Connecting...' : 'Connect to HubSpot'}
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-medium text-gray-700">API Key</span>
+                                        <span className="text-sm text-gray-900 font-mono">
+                                            {hubspotApiKey.substring(0, 8)}...{hubspotApiKey.substring(hubspotApiKey.length - 4)}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-medium text-gray-700">Properties Synced</span>
+                                        <span className="text-sm text-gray-900">{propertiesCount} properties</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-medium text-gray-700">Last Sync</span>
+                                        <span className="text-sm text-gray-900">{lastSync ? lastSync.toLocaleString() : 'Never'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-medium text-gray-700">Target Replica</span>
+                                        <span className="text-sm text-gray-900">{replicas.find(r => r.uuid === selectedReplicaId)?.name || 'Unknown'}</span>
                                     </div>
                                 </div>
-                            )}
 
-                            {connectionStatus && (
-                                <div className={`status-message ${isConnected ? 'success' : 'error'}`}>
-                                    {connectionStatus}
+                                <div className="flex space-x-3">
+                                    <Button
+                                        onClick={handleManualSync}
+                                        disabled={isConnecting}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        {isConnecting ? 'Syncing...' : 'Sync Now'}
+                                    </Button>
+                                    <Button
+                                        onClick={handleDisconnect}
+                                        variant="danger"
+                                        className="flex-1"
+                                    >
+                                        Disconnect
+                                    </Button>
                                 </div>
-                            )}
-                        </div>
-                    </div>
+                            </div>
+                        )}
+
+                        {connectionStatus && (
+                            <div className={`mt-4 p-3 rounded-sm text-sm ${isConnected ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+                                }`}>
+                                {connectionStatus}
+                            </div>
+                        )}
+                    </Card>
                 )}
 
                 {/* AI Agent Integration Info */}
-                <div className="ai-integration-section">
-                    <h3>AI Agent Integration</h3>
-                    <div className="ai-info">
-                        <p>
+                <Card>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Agent Integration</h3>
+                    <div className="space-y-4">
+                        <p className="text-gray-700">
                             When you connect to HubSpot, your property data is automatically:
                         </p>
-                        <ul>
-                            <li>✅ Synced and converted to CSV format</li>
-                            <li>✅ Integrated with the AI agent</li>
-                            <li>✅ Made available for customer inquiries</li>
-                            <li>✅ Updated in real-time when you sync</li>
+                        <ul className="space-y-2 text-gray-700">
+                            <li className="flex items-center">
+                                <span className="text-green-600 mr-2">✅</span>
+                                Synced and converted to CSV format
+                            </li>
+                            <li className="flex items-center">
+                                <span className="text-green-600 mr-2">✅</span>
+                                Integrated with the AI agent
+                            </li>
+                            <li className="flex items-center">
+                                <span className="text-green-600 mr-2">✅</span>
+                                Made available for customer inquiries
+                            </li>
+                            <li className="flex items-center">
+                                <span className="text-green-600 mr-2">✅</span>
+                                Updated in real-time when you sync
+                            </li>
                         </ul>
                         {isConnected && (
-                            <div className="ai-status-active">
-                                <strong>AI Agent is active and ready to help customers with your property data!</strong>
+                            <div className="bg-green-50 border border-green-200 p-4 rounded-sm">
+                                <p className="text-green-800 font-semibold">
+                                    AI Agent is active and ready to help customers with your property data!
+                                </p>
                             </div>
                         )}
                     </div>
-                </div>
+                </Card>
             </div>
         </div>
     )
