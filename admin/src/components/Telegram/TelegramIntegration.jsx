@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import API, { API_CONFIG } from '../../services/api'
-import { Button, Card, Input, Select, Loading } from '../UI'
+import { Button, Card, Input, Select, Loading, Modal } from '../UI'
 import NoReplicas from '../NoReplicas/NoReplicas'
 
 const TelegramIntegration = ({ onTabChange }) => {
@@ -18,6 +18,7 @@ const TelegramIntegration = ({ onTabChange }) => {
     const [botInfo, setBotInfo] = useState(null)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [deleting, setDeleting] = useState(false)
     const [showReconfigure, setShowReconfigure] = useState(false)
 
@@ -181,9 +182,11 @@ const TelegramIntegration = ({ onTabChange }) => {
     }
 
     const deleteIntegration = async () => {
-        if (!window.confirm('Are you sure you want to delete this Telegram integration? This action cannot be undone.')) {
-            return
-        }
+        setShowDeleteModal(true)
+    }
+
+    const confirmDelete = async () => {
+        setShowDeleteModal(false)
 
         try {
             setDeleting(true)
@@ -550,6 +553,27 @@ const TelegramIntegration = ({ onTabChange }) => {
                     )}
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                title="Delete Telegram Integration"
+                onConfirm={confirmDelete}
+                confirmText="Delete"
+                cancelText="Cancel"
+                confirmVariant="danger"
+            >
+                <div className="text-center">
+                    <div className="text-4xl mb-4">⚠️</div>
+                    <p className="text-gray-600 mb-4">
+                        Are you sure you want to delete this Telegram integration? This action cannot be undone.
+                    </p>
+                    <p className="text-sm text-gray-500">
+                        All Telegram bot connections and settings will be permanently removed.
+                    </p>
+                </div>
+            </Modal>
         </div>
     )
 }

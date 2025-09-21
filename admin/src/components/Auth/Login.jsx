@@ -46,13 +46,23 @@ const Login = ({ onLogin }) => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full">
-                <Card className="text-center">
+                <Card className="text-center bg-white/95 backdrop-blur-sm border-gray-200 shadow-2xl">
                     <div className="mb-8">
-                        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-                            Herainov
-                        </h1>
+                        <div className="flex items-center justify-center space-x-3 mb-4">
+                            <img
+                                src="/herainov_house_logo.png"
+                                alt="Herainov Logo"
+                                className="h-10 w-10 object-contain rounded-md"
+                                onError={(e) => {
+                                    e.target.style.display = 'none'
+                                }}
+                            />
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-yellow-800 bg-clip-text text-transparent">
+                                Herainov
+                            </h1>
+                        </div>
                         <p className="text-gray-600">Sign in to your account</p>
                     </div>
 
@@ -87,13 +97,32 @@ const Login = ({ onLogin }) => {
 
                         <Button
                             type="submit"
-                            className="w-full"
+                            className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-semibold py-3"
                             disabled={loading}
                         >
-                            {loading ? 'Signing in...' : 'Sign In'}
+                            {loading ? (
+                                <div className="flex items-center justify-center space-x-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    <span>Signing in...</span>
+                                </div>
+                            ) : (
+                                'Sign In'
+                            )}
                         </Button>
                     </form>
+
+                    <div className="mt-8 pt-6 border-t border-gray-200">
+                        <p className="text-xs text-gray-500">
+                            Real Estate AI Assistant Platform
+                        </p>
+                    </div>
                 </Card>
+
+                <div className="mt-8 text-center">
+                    <p className="text-sm text-gray-400">
+                        © 2024 Herainov. All rights reserved.
+                    </p>
+                </div>
             </div>
         </div>
     )
