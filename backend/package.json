@@ -16,7 +16,6 @@
     "railway:start": "npm run resolve:migration && prisma db push --accept-data-loss && npm start",
     "resolve:migration": "node scripts/resolve-migration.js",
     "railway:fix": "npm run resolve:migration && npm run railway:start",
-    "railway:deploy": "npm install && npm run build && prisma migrate deploy && npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
