@@ -567,9 +567,8 @@ export class SensayController {
         updatedAt: integration.updatedAt
       })
 
-      // ALWAYS use environment variable (force override for production)
       const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
-      const orgSecretToUse = envOrgSecret // Force env var, ignore database
+      const orgSecretToUse = envOrgSecret
 
       console.log('🔍 Organization secret source:', {
         fromEnv: !!envOrgSecret,
