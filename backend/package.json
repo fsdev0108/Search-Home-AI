@@ -16,6 +16,8 @@
     "railway:start": "npm run resolve:migration && prisma db push --accept-data-loss && npm start",
     "resolve:migration": "node scripts/resolve-migration.js",
     "railway:fix": "npm run resolve:migration && npm run railway:start",
+    "vercel-build": "npm run build",
+    "vercel-dev": "npm run dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
