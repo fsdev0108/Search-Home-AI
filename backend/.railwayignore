@@ -6,3 +6,6 @@ dist
 *.db
 *.sqlite
 uploads
+*.md
+scripts
+prisma/dev.db
