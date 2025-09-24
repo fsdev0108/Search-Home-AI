@@ -15,7 +15,7 @@ datasource db {
 
 model IntegrationSettings {
   id             String   @id @default(uuid())
-  organizationSecret String @unique // X-ORGANIZATION-SECRET from Sensay
+  organizationSecret String // X-ORGANIZATION-SECRET from Sensay (shared)
   organizationName String
   settings       String   // JSON string for app-specific settings
   createdAt      DateTime @default(now())

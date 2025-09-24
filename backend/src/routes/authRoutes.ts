@@ -121,8 +121,8 @@ export async function authRoutes(fastify: FastifyInstance) {
         })
       }
 
-      // Create a new integration for this user
-      // Each user gets their own integration with their own configurations
+      // Create individual integration for this user
+      // Same organization, but separate integration settings
       const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
       if (!envOrgSecret) {
         return reply.status(500).send({
@@ -131,21 +131,22 @@ export async function authRoutes(fastify: FastifyInstance) {
         })
       }
 
-      // Create new integration for this user
+      // Create new integration for this user (same org, different settings)
       const integration = await prisma.integrationSettings.create({
         data: {
-          organizationSecret: envOrgSecret,
-          organizationName: `${name}'s Organization`,
+          organizationSecret: envOrgSecret, // Same organization
+          organizationName: `${name}'s Integration`,
           settings: JSON.stringify({ 
             createdBy: email,
             userType: 'individual',
-            description: `Integration for ${name}`
+            description: `Integration for ${name}`,
+            userId: email // Track which user owns this integration
           })
         }
       })
 
       // Create user in Sensay
-      const sensayService = new SensayApiService(envOrgSecret)
+      const sensayService = new SensayApiService(integration.organizationSecret)
       const sensayUser = await sensayService.createUser({
         name,
         email
