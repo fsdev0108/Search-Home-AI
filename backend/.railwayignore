@@ -9,3 +9,7 @@ uploads
 *.md
 scripts
 prisma/dev.db
+.cache
+.tmp
+*.tmp
+*.cache
