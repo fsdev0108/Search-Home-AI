@@ -132,12 +132,22 @@ export class TwilioController {
     try {
       const { integrationId } = request.params as { integrationId: string }
 
+      // Configure webhook programmatically
+      const webhookConfigured = await TwilioService.configureWebhook(integrationId)
+      
+      if (!webhookConfigured) {
+        return ResponseHandler.error(reply, 'Failed to configure webhook. Please check Twilio settings.', 500)
+      }
+
       await prisma.twilioSettings.updateMany({
         where: { integrationId },
         data: { isActive: true }
       })
 
-      return ResponseHandler.success(reply, { isActive: true }, 'Twilio integration activated')
+      return ResponseHandler.success(reply, { 
+        isActive: true,
+        webhookUrl: `${process.env.RAILWAY_PUBLIC_DOMAIN || 'https://sensay-search-home-ai-production.up.railway.app'}/api/v1/twilio/webhook/${integrationId}`
+      }, 'WhatsApp integration activated successfully! Webhook configured automatically.')
 
     } catch (error: any) {
       console.error('Error activating Twilio integration:', error)
@@ -167,6 +177,11 @@ export class TwilioController {
         return reply.status(200).send(twiml.toString())
       }
 
+      if (integrationId === 'global') {
+        // Global webhook for sandbox - route to appropriate integration
+        return await this.handleGlobalWebhook(body, reply)
+      }
+
       const twilioService = await TwilioService.getTwilioService(integrationId)
       
       if (twilioService) {
@@ -190,6 +205,58 @@ export class TwilioController {
       console.error('Error handling Twilio webhook:', error)
       
       // Return error TwiML response
+      const twiml = new twilio.twiml.MessagingResponse()
+      twiml.message('Sorry, there was an error processing your message.')
+      
+      reply.type('text/xml')
+      return reply.status(200).send(twiml.toString())
+    }
+  }
+
+  static async handleGlobalWebhook(body: any, reply: FastifyReply) {
+    try {
+      const twiml = new twilio.twiml.MessagingResponse()
+      const from = body.From?.replace('whatsapp:', '')
+      const message = body.Body
+
+      console.log(`🌐 Global webhook - message from ${from}: ${message}`)
+
+      // For sandbox, we need to identify which integration to use
+      // This is a limitation of sandbox - we can't have multiple webhooks
+      // We'll use the first active integration as a fallback
+      const activeIntegrations = await prisma.twilioSettings.findMany({
+        where: { isActive: true },
+        include: { integration: true }
+      })
+
+      if (activeIntegrations.length === 0) {
+        twiml.message('No active integrations found. Please contact support.')
+        reply.type('text/xml')
+        return reply.status(200).send(twiml.toString())
+      }
+
+      // Use the first active integration (in production, each client would have their own number)
+      const integration = activeIntegrations[0]
+      const twilioService = new TwilioService(
+        integration.accountSid,
+        integration.authToken,
+        integration.phoneNumber,
+        integration.replicaId || ''
+      )
+
+      const responseText = await twilioService.processMessageForTwiML(body)
+      if (responseText) {
+        twiml.message(responseText)
+      } else {
+        twiml.message('Thank you for your message!')
+      }
+
+      reply.type('text/xml')
+      return reply.status(200).send(twiml.toString())
+
+    } catch (error) {
+      console.error('Error handling global webhook:', error)
+      
       const twiml = new twilio.twiml.MessagingResponse()
       twiml.message('Sorry, there was an error processing your message.')
       

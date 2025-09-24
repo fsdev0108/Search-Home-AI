@@ -456,13 +456,28 @@ const WhatsAppIntegration = ({ onTabChange }) => {
                     {whatsappData.isActive && (
                         <Card>
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">📱 How to use (MVP):</h3>
-                            <ol className="space-y-2 text-gray-700">
-                                <li>1. <strong>Configure webhook in Twilio Console:</strong> <code className="bg-gray-100 px-2 py-1 rounded text-sm">https://sensay-search-home-ai-production.up.railway.app/api/v1/twilio/webhook/{currentIntegration.id}</code></li>
-                                <li>2. <strong>For sandbox testing:</strong> Send "join &lt;keyword&gt;" to +1 415 523 8886</li>
-                                <li>3. <strong>Then send any message</strong> to test the integration</li>
-                                <li>4. Your bot responds automatically using the selected replica's knowledge base</li>
-                                <li>5. All conversations are saved in Sensay for analysis</li>
-                            </ol>
+                            <div className="space-y-3">
+                                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-sm">
+                                    <p className="text-sm text-yellow-700">
+                                        <strong>⚠️ Sandbox Limitation:</strong> All users share the same WhatsApp number. Only one integration can be active at a time in sandbox mode.
+                                    </p>
+                                </div>
+                                <ol className="space-y-2 text-gray-700">
+                                    <li>1. <strong>For sandbox testing:</strong> Send "join &lt;keyword&gt;" to +1 415 523 8886</li>
+                                    <li>2. <strong>Then send any message</strong> to test the integration</li>
+                                    <li>3. Your bot responds automatically using the selected replica's knowledge base</li>
+                                    <li>4. All conversations are saved in Sensay for analysis</li>
+                                </ol>
+                                <div className="mt-4 p-3 bg-gray-50 rounded-sm">
+                                    <p className="text-xs text-gray-600 mb-1">Webhook URL (sandbox - shared):</p>
+                                    <code className="text-xs bg-white px-2 py-1 rounded border">
+                                        https://sensay-search-home-ai-production.up.railway.app/api/v1/twilio/webhook/global
+                                    </code>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        In production, each client will have their own WhatsApp Business number and unique webhook.
+                                    </p>
+                                </div>
+                            </div>
                         </Card>
                     )}
                 </div>

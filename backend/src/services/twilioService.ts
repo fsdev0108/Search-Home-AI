@@ -198,4 +198,90 @@ export class TwilioService {
       return null
     }
   }
+
+  static async configureWebhook(integrationId: string, phoneNumberSid?: string): Promise<boolean> {
+    try {
+      const accountSid = process.env.TWILIO_ACCOUNT_SID
+      const authToken = process.env.TWILIO_AUTH_TOKEN
+      
+      if (!accountSid || !authToken) {
+        throw new Error('Twilio credentials not configured')
+      }
+
+      const baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN || 'https://sensay-search-home-ai-production.up.railway.app'
+      
+      // For WhatsApp Sandbox: Use a single global webhook that routes internally
+      // For Production: Each client will have their own phone number and webhook
+      const isSandbox = process.env.TWILIO_WHATSAPP_NUMBER === '+14155238886'
+      
+      if (isSandbox) {
+        // Sandbox: Configure single webhook that routes to all integrations
+        const webhookUrl = `${baseUrl}/api/v1/twilio/webhook/global`
+        
+        const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
+        
+        // Get the messaging service SID (for sandbox)
+        const messagingServiceResponse = await axios.get(
+          `https://messaging.twilio.com/v1/Services`,
+          {
+            headers: {
+              'Authorization': `Basic ${auth}`
+            }
+          }
+        )
+
+        if (messagingServiceResponse.data.services && messagingServiceResponse.data.services.length > 0) {
+          const messagingServiceSid = messagingServiceResponse.data.services[0].sid
+          
+          // Update messaging service webhook to global endpoint
+          await axios.post(
+            `https://messaging.twilio.com/v1/Services/${messagingServiceSid}`,
+            new URLSearchParams({
+              InboundRequestUrl: webhookUrl,
+              InboundMethod: 'POST'
+            }),
+            {
+              headers: {
+                'Authorization': `Basic ${auth}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+              }
+            }
+          )
+
+          console.log(`✅ Sandbox webhook configured: ${webhookUrl}`)
+          console.log(`📝 Note: All integrations will use the same sandbox number. Routing will be handled internally.`)
+          return true
+        }
+      } else {
+        // Production: Each integration gets its own webhook
+        const webhookUrl = `${baseUrl}/api/v1/twilio/webhook/${integrationId}`
+        
+        if (phoneNumberSid) {
+          const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
+          
+          await axios.post(
+            `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/IncomingPhoneNumbers/${phoneNumberSid}.json`,
+            new URLSearchParams({
+              SmsUrl: webhookUrl,
+              SmsMethod: 'POST'
+            }),
+            {
+              headers: {
+                'Authorization': `Basic ${auth}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+              }
+            }
+          )
+          
+          console.log(`✅ Production webhook configured for integration ${integrationId}: ${webhookUrl}`)
+          return true
+        }
+      }
+
+      return false
+    } catch (error) {
+      console.error('Error configuring webhook:', error)
+      return false
+    }
+  }
 }
