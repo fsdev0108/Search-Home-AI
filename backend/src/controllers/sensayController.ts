@@ -408,23 +408,10 @@ export class SensayController {
       const sensayService = new SensayApiService(envOrgSecret)
       const sensayUser = await sensayService.createUser(userData)
 
-      // Save user to local database
-      const localUser = await prisma.user.create({
-        data: {
-          integrationId: integrationId,
-          sensayUserId: sensayUser.id,
-          name: sensayUser.name,
-          email: sensayUser.email
-        }
-      })
-
       return reply.status(201).send({
         success: true,
-        data: {
-          ...sensayUser,
-          localId: localUser.id
-        },
-        message: 'User created successfully in Sensay and saved locally'
+        data: sensayUser,
+        message: 'User created successfully in Sensay'
       })
     } catch (error: any) {
       console.error('Error creating user:', error)

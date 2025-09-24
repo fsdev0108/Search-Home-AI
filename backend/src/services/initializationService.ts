@@ -86,8 +86,9 @@ export class InitializationService {
           integrationId: integration.id,
           sensayUserId: sensayUser.id,
           name: sensayUser.name,
-          email: sensayUser.email
-        }
+          email: sensayUser.email,
+          password: 'herainov123' // Default password for test user
+        } as any
       })
 
       console.log('✅ Default user created successfully:')

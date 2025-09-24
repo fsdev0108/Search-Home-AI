@@ -3,12 +3,16 @@ import { authAPI } from '../../services/api'
 import { Button, Input, Card, Loading } from '../UI'
 
 const Login = ({ onLogin }) => {
+    const [isRegistering, setIsRegistering] = useState(false)
     const [formData, setFormData] = useState({
+        name: '',
         email: '',
-        password: ''
+        password: '',
+        confirmPassword: ''
     })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const [success, setSuccess] = useState('')
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
@@ -22,27 +26,59 @@ const Login = ({ onLogin }) => {
         e.preventDefault()
         setLoading(true)
         setError('')
+        setSuccess('')
 
         try {
-            // Call real API
-            const response = await authAPI.login(formData.email, formData.password)
+            if (isRegistering) {
+                if (formData.password !== formData.confirmPassword) {
+                    setError('Passwords do not match')
+                    setLoading(false)
+                    return
+                }
 
-            if (response.success) {
-                // Save token and user data
-                localStorage.setItem('authToken', response.data.token)
-                localStorage.setItem('user', JSON.stringify(response.data.user))
+                const response = await authAPI.register(formData.name, formData.email, formData.password)
 
-                // Call login callback
-                onLogin(response.data.user)
+                if (response.success) {
+                    setSuccess('Account created successfully! You are now logged in.')
+
+                    localStorage.setItem('authToken', response.data.token)
+                    localStorage.setItem('user', JSON.stringify(response.data.user))
+
+                    onLogin(response.data.user)
+                } else {
+                    setError(response.error || 'Registration failed')
+                }
             } else {
-                setError(response.error || 'Login failed')
+                // Call login API
+                const response = await authAPI.login(formData.email, formData.password)
+
+                if (response.success) {
+                    localStorage.setItem('authToken', response.data.token)
+                    localStorage.setItem('user', JSON.stringify(response.data.user))
+
+                    onLogin(response.data.user)
+                } else {
+                    setError(response.error || 'Login failed')
+                }
             }
         } catch (error) {
-            console.error('Login error:', error)
+            console.error(isRegistering ? 'Registration error:' : 'Login error:', error)
             setError('Failed to connect to server. Please try again.')
         }
 
         setLoading(false)
+    }
+
+    const toggleMode = () => {
+        setIsRegistering(!isRegistering)
+        setFormData({
+            name: '',
+            email: '',
+            password: '',
+            confirmPassword: ''
+        })
+        setError('')
+        setSuccess('')
     }
 
     return (
@@ -63,7 +99,9 @@ const Login = ({ onLogin }) => {
                                 Herainov
                             </h1>
                         </div>
-                        <p className="text-gray-600">Sign in to your account</p>
+                        <p className="text-gray-600">
+                            {isRegistering ? 'Create your account' : 'Sign in to your account'}
+                        </p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -71,6 +109,25 @@ const Login = ({ onLogin }) => {
                             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
                                 {error}
                             </div>
+                        )}
+
+                        {success && (
+                            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm">
+                                {success}
+                            </div>
+                        )}
+
+                        {isRegistering && (
+                            <Input
+                                label="Full Name"
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                required
+                                placeholder="Enter your full name"
+                                disabled={loading}
+                            />
                         )}
 
                         <Input
@@ -95,6 +152,19 @@ const Login = ({ onLogin }) => {
                             disabled={loading}
                         />
 
+                        {isRegistering && (
+                            <Input
+                                label="Confirm Password"
+                                type="password"
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleInputChange}
+                                required
+                                placeholder="Confirm your password"
+                                disabled={loading}
+                            />
+                        )}
+
                         <Button
                             type="submit"
                             className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-semibold py-3"
@@ -103,13 +173,27 @@ const Login = ({ onLogin }) => {
                             {loading ? (
                                 <div className="flex items-center justify-center space-x-2">
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    <span>Signing in...</span>
+                                    <span>{isRegistering ? 'Creating account...' : 'Signing in...'}</span>
                                 </div>
                             ) : (
-                                'Sign In'
+                                isRegistering ? 'Create Account' : 'Sign In'
                             )}
                         </Button>
                     </form>
+
+                    <div className="mt-6">
+                        <button
+                            type="button"
+                            onClick={toggleMode}
+                            className="text-sm text-yellow-600 hover:text-yellow-700 font-medium"
+                            disabled={loading}
+                        >
+                            {isRegistering
+                                ? 'Already have an account? Sign in'
+                                : "Don't have an account? Create one"
+                            }
+                        </button>
+                    </div>
 
                     <div className="mt-8 pt-6 border-t border-gray-200">
                         <p className="text-xs text-gray-500">

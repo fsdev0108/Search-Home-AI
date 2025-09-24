@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 // Simplified schema - Sensay manages organizations, users, and replicas
@@ -36,6 +36,7 @@ model User {
   sensayUserId   String   @unique // ID from Sensay API
   name           String
   email          String
+  password       String   // Hashed password for authentication
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

@@ -1,5 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma'
+import { SensayApiService } from '../services/sensayApiService'
+import bcrypt from 'bcrypt'
 
 export async function authRoutes(fastify: FastifyInstance) {
 
@@ -43,17 +45,9 @@ export async function authRoutes(fastify: FastifyInstance) {
         })
       }
 
-      // For now, use simple password validation
-      // In production, this should use proper password hashing
-      // Since we don't store passwords in our local DB, we'll use a simple approach
-      // The real authentication should be handled by Sensay or a proper auth system
+      const isValidPassword = await bcrypt.compare(password, (dbUser as any).password)
       
-      // Simple password validation (in production, use proper hashing)
-      const validPasswords: Record<string, string> = {
-        'testUser@herainov.com': 'herainov123'
-      }
-      
-      if (validPasswords[email] !== password) {
+      if (!isValidPassword) {
         return reply.status(401).send({
           success: false,
           error: 'Invalid password'
@@ -98,38 +92,114 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
   })
 
-  // Register (apenas admin pode criar usuários)
+
   fastify.post('/auth/register', {
     schema: {
       body: {
         type: 'object',
-        required: ['name', 'email', 'password', 'role'],
+        required: ['name', 'email', 'password'],
         properties: {
           name: { type: 'string', minLength: 1 },
           email: { type: 'string', format: 'email' },
-          password: { type: 'string', minLength: 6 },
-          role: { type: 'string', enum: ['admin', 'user'] }
+          password: { type: 'string', minLength: 6 }
         }
       }
     }
   }, async (request, reply) => {
     try {
-      const { name, email, password, role } = request.body as any
+      const { name, email, password } = request.body as any
 
-      return reply.status(501).send({
-        success: false,
-        error: 'User registration not implemented in simplified version'
+      // Check if user already exists
+      const existingUser = await prisma.user.findFirst({
+        where: { email: email }
       })
+
+      if (existingUser) {
+        return reply.status(400).send({
+          success: false,
+          error: 'User with this email already exists'
+        })
+      }
+
+      // Create a new integration for this user
+      // Each user gets their own integration with their own configurations
+      const envOrgSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      if (!envOrgSecret) {
+        return reply.status(500).send({
+          success: false,
+          error: 'SENSAY_ORGANIZATION_SECRET environment variable is required'
+        })
+      }
+
+      // Create new integration for this user
+      const integration = await prisma.integrationSettings.create({
+        data: {
+          organizationSecret: envOrgSecret,
+          organizationName: `${name}'s Organization`,
+          settings: JSON.stringify({ 
+            createdBy: email,
+            userType: 'individual',
+            description: `Integration for ${name}`
+          })
+        }
+      })
+
+      // Create user in Sensay
+      const sensayService = new SensayApiService(envOrgSecret)
+      const sensayUser = await sensayService.createUser({
+        name,
+        email
+      })
+
+      const saltRounds = 10
+      const hashedPassword = await bcrypt.hash(password, saltRounds)
+
+      // Save user to local database
+      const localUser = await prisma.user.create({
+        data: {
+          integrationId: integration.id,
+          sensayUserId: sensayUser.id,
+          name: sensayUser.name,
+          email: sensayUser.email,
+          password: hashedPassword
+        } as any
+      })
+
+      const jwt = require('jsonwebtoken')
+      const secret = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+      
+      const payload = {
+        userId: localUser.sensayUserId,
+        email: localUser.email,
+        role: 'user' // New users are regular users by default
+      }
+      
+      const token = jwt.sign(payload, secret, { expiresIn: '24h' })
+
+      return reply.status(201).send({
+        success: true,
+        data: {
+          token,
+          user: {
+            id: localUser.sensayUserId,
+            sensayUserId: localUser.sensayUserId,
+            email: localUser.email,
+            name: localUser.name,
+            role: 'user'
+          }
+        },
+        message: 'User created successfully'
+      })
+
     } catch (error: any) {
       request.log.error('Error creating user:', error)
       return reply.status(500).send({
         success: false,
-        error: 'Internal server error'
+        error: 'Failed to create user: ' + error.message
       })
     }
   })
 
-  // Verificar token atual
   fastify.get('/auth/me', async (request, reply) => {
     return reply.status(501).send({
       success: false,
@@ -137,7 +207,6 @@ export async function authRoutes(fastify: FastifyInstance) {
     })
   })
 
-  // Logout (opcional, pode ser feito no frontend)
   fastify.post('/auth/logout', async (request, reply) => {
     return reply.status(501).send({
       success: false,
