@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { integrationsAPI, hubspotAPI, replicasAPI } from '../../services/api'
+import { integrationsAPI, hubspotAPI, replicasAPI, knowledgeBaseAPI } from '../../services/api'
 import { Button, Card, Input, Loading } from '../UI'
 import NoReplicas from '../NoReplicas/NoReplicas'
 
@@ -17,6 +17,13 @@ const Settings = ({ onTabChange }) => {
     const [currentOrganization, setCurrentOrganization] = useState(null)
     const [replicas, setReplicas] = useState([])
     const [selectedReplicaId, setSelectedReplicaId] = useState('')
+
+    // File upload states
+    const [selectedFile, setSelectedFile] = useState(null)
+    const [uploadTitle, setUploadTitle] = useState('')
+    const [uploadReplicaId, setUploadReplicaId] = useState('')
+    const [isUploading, setIsUploading] = useState(false)
+    const [uploadStatus, setUploadStatus] = useState('')
 
     // Get current user from localStorage
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
@@ -221,6 +228,72 @@ const Settings = ({ onTabChange }) => {
         setIsConnecting(false)
     }
 
+    const handleFileSelect = (event) => {
+        const file = event.target.files[0]
+        if (file) {
+            setSelectedFile(file)
+            setUploadTitle(file.name.replace(/\.[^/.]+$/, "")) // Remove extension for title
+        }
+    }
+
+    const handleFileUpload = async () => {
+        if (!selectedFile || !uploadReplicaId || !uploadTitle.trim()) {
+            setUploadStatus('Please select a file, replica, and enter a title')
+            return
+        }
+
+        setIsUploading(true)
+        setUploadStatus('Uploading file...')
+
+        try {
+            const fileContent = await readFileContent(selectedFile)
+            const fileType = getFileType(selectedFile.name)
+
+            const uploadData = {
+                filename: selectedFile.name,
+                title: uploadTitle.trim(),
+                content: fileContent,
+                fileType: fileType
+            }
+
+            const response = await knowledgeBaseAPI.uploadFile(uploadReplicaId, uploadData)
+
+            if (response.success) {
+                setUploadStatus('File uploaded successfully! The AI agent can now use this knowledge.')
+                // Reset form
+                setSelectedFile(null)
+                setUploadTitle('')
+                setUploadReplicaId('')
+                // Reset file input
+                const fileInput = document.getElementById('fileInput')
+                if (fileInput) fileInput.value = ''
+            } else {
+                throw new Error(response.error || 'Upload failed')
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error)
+            setUploadStatus(`Upload failed: ${error.message}`)
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
+    const readFileContent = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = (e) => resolve(e.target.result)
+            reader.onerror = (e) => reject(e)
+            reader.readAsText(file)
+        })
+    }
+
+    const getFileType = (filename) => {
+        const extension = filename.split('.').pop().toLowerCase()
+        if (extension === 'csv') return 'csv'
+        if (['txt', 'md', 'json'].includes(extension)) return 'text'
+        return 'text' // Default to text for other file types
+    }
+
     // Check if no replicas exist
     if (replicas.length === 0) {
         return <NoReplicas onNavigateToReplicas={() => onTabChange('replicas')} />
@@ -385,6 +458,107 @@ const Settings = ({ onTabChange }) => {
                                 {connectionStatus}
                             </div>
                         )}
+                    </Card>
+                )}
+
+                {/* File Upload Section */}
+                {currentIntegration && (
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">📁 Upload Knowledge Files</h3>
+                        <div className="space-y-4">
+                            <p className="text-gray-700">
+                                Upload files to train your AI agent with additional knowledge:
+                            </p>
+
+                            <div>
+                                <label htmlFor="uploadReplicaSelect" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Select Replica for Training
+                                </label>
+                                <select
+                                    id="uploadReplicaSelect"
+                                    value={uploadReplicaId}
+                                    onChange={(e) => setUploadReplicaId(e.target.value)}
+                                    disabled={isUploading}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                                >
+                                    <option value="">Choose a replica...</option>
+                                    {replicas.map(replica => (
+                                        <option key={replica.uuid} value={replica.uuid}>
+                                            {replica.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Select which replica will receive the uploaded knowledge
+                                </p>
+                            </div>
+
+                            <div>
+                                <label htmlFor="fileInput" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Select File
+                                </label>
+                                <input
+                                    type="file"
+                                    id="fileInput"
+                                    onChange={handleFileSelect}
+                                    disabled={isUploading}
+                                    accept=".txt,.md,.csv,.json"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Supported formats: TXT, MD, CSV, JSON (max 10MB)
+                                </p>
+                            </div>
+
+                            <div>
+                                <label htmlFor="uploadTitle" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Document Title
+                                </label>
+                                <input
+                                    type="text"
+                                    id="uploadTitle"
+                                    value={uploadTitle}
+                                    onChange={(e) => setUploadTitle(e.target.value)}
+                                    placeholder="Enter a title for this document"
+                                    disabled={isUploading}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                                />
+                            </div>
+
+                            <Button
+                                onClick={handleFileUpload}
+                                disabled={isUploading || !selectedFile || !uploadReplicaId || !uploadTitle.trim()}
+                                className="w-full"
+                            >
+                                {isUploading ? (
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <span>Uploading...</span>
+                                    </div>
+                                ) : (
+                                    'Upload to Knowledge Base'
+                                )}
+                            </Button>
+
+                            {uploadStatus && (
+                                <div className={`p-3 rounded-sm text-sm ${uploadStatus.includes('successfully')
+                                    ? 'bg-green-50 border border-green-200 text-green-700'
+                                    : 'bg-red-50 border border-red-200 text-red-700'
+                                    }`}>
+                                    {uploadStatus}
+                                </div>
+                            )}
+
+                            <div className="bg-blue-50 border border-blue-200 p-4 rounded-sm">
+                                <h4 className="text-sm font-semibold text-blue-800 mb-2">💡 Tips for better results:</h4>
+                                <ul className="text-xs text-blue-700 space-y-1">
+                                    <li>• Use clear, structured text files</li>
+                                    <li>• Include relevant property information</li>
+                                    <li>• CSV files work great for property data</li>
+                                    <li>• Markdown files support rich formatting</li>
+                                </ul>
+                            </div>
+                        </div>
                     </Card>
                 )}
 

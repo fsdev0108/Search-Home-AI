@@ -170,6 +170,10 @@ export const knowledgeBaseAPI = {
   getKnowledgeBaseEntry: (replicaUUID, knowledgeBaseID) => apiCall(`/replicas/${replicaUUID}/knowledge-base/${knowledgeBaseID}`),
   deleteKnowledgeBaseEntry: (replicaUUID, knowledgeBaseID) => apiCall(`/replicas/${replicaUUID}/knowledge-base/${knowledgeBaseID}`, {
     method: 'DELETE'
+  }),
+  uploadFile: (replicaUUID, fileData) => apiCall(`/replicas/${replicaUUID}/upload`, {
+    method: 'POST',
+    body: JSON.stringify(fileData)
   })
 }
 

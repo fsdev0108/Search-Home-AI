@@ -746,4 +746,70 @@ export class SensayController {
       })
     }
   }
+
+  async uploadFileToKnowledgeBase(request: any, reply: any) {
+    try {
+      const { replicaUUID } = request.params
+      const data = request.body as any
+      
+      if (!replicaUUID) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Replica UUID is required'
+        })
+      }
+
+      if (!data.content) {
+        return reply.status(400).send({
+          success: false,
+          error: 'File content is required'
+        })
+      }
+
+      const organizationSecret = process.env.SENSAY_ORGANIZATION_SECRET
+      if (!organizationSecret) {
+        return reply.status(500).send({
+          success: false,
+          error: 'Organization secret not configured'
+        })
+      }
+
+      const sensayService = new SensayApiService(organizationSecret)
+      
+      // Handle different file types
+      let result
+      if (data.fileType === 'text') {
+        result = await sensayService.uploadTextToKnowledgeBase(
+          replicaUUID,
+          data.content,
+          data.title || 'Uploaded Document'
+        )
+      } else if (data.fileType === 'csv') {
+        result = await sensayService.uploadCSVToKnowledgeBase(
+          replicaUUID,
+          data.content,
+          data.title || 'Uploaded CSV'
+        )
+      } else {
+        // For other file types, upload as text
+        result = await sensayService.uploadTextToKnowledgeBase(
+          replicaUUID,
+          data.content,
+          data.title || data.filename || 'Uploaded File'
+        )
+      }
+
+      return reply.send({
+        success: true,
+        data: result,
+        message: 'File uploaded to knowledge base successfully'
+      })
+    } catch (error: any) {
+      console.error('Error uploading file to knowledge base:', error)
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to upload file to knowledge base'
+      })
+    }
+  }
 }

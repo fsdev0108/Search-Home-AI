@@ -220,38 +220,13 @@ export class TwilioService {
         
         const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
         
-        // Get the messaging service SID (for sandbox)
-        const messagingServiceResponse = await axios.get(
-          `https://messaging.twilio.com/v1/Services`,
-          {
-            headers: {
-              'Authorization': `Basic ${auth}`
-            }
-          }
-        )
-
-        if (messagingServiceResponse.data.services && messagingServiceResponse.data.services.length > 0) {
-          const messagingServiceSid = messagingServiceResponse.data.services[0].sid
-          
-          // Update messaging service webhook to global endpoint
-          await axios.post(
-            `https://messaging.twilio.com/v1/Services/${messagingServiceSid}`,
-            new URLSearchParams({
-              InboundRequestUrl: webhookUrl,
-              InboundMethod: 'POST'
-            }),
-            {
-              headers: {
-                'Authorization': `Basic ${auth}`,
-                'Content-Type': 'application/x-www-form-urlencoded'
-              }
-            }
-          )
-
-          console.log(`✅ Sandbox webhook configured: ${webhookUrl}`)
-          console.log(`📝 Note: All integrations will use the same sandbox number. Routing will be handled internally.`)
-          return true
-        }
+        // For sandbox, we don't need to configure webhook programmatically
+        // The webhook URL is already configured in Twilio Console
+        // We just need to ensure our endpoint can handle the messages
+        console.log(`✅ Sandbox webhook URL: ${webhookUrl}`)
+        console.log(`📝 Note: Webhook should be configured in Twilio Console to point to this URL`)
+        console.log(`📝 All integrations will use the same sandbox number. Routing will be handled internally.`)
+        return true
       } else {
         // Production: Each integration gets its own webhook
         const webhookUrl = `${baseUrl}/api/v1/twilio/webhook/${integrationId}`

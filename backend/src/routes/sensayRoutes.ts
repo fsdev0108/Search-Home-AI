@@ -49,6 +49,11 @@ export async function sensayRoutes(fastify: FastifyInstance) {
   fastify.delete('/replicas/:replicaUUID/knowledge-base/:knowledgeBaseID', { 
     preHandler: [authMiddleware, requireUser] 
   }, sensayController.deleteKnowledgeBaseEntry.bind(sensayController))
+  
+  // File Upload to Knowledge Base (requires auth)
+  fastify.post('/replicas/:replicaUUID/upload', { 
+    preHandler: [authMiddleware, requireUser] 
+  }, sensayController.uploadFileToKnowledgeBase.bind(sensayController))
 
   // Sync Logs (requires auth)
   fastify.get('/integrations/:integrationId/logs', { 

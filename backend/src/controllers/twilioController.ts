@@ -139,6 +139,13 @@ export class TwilioController {
         return ResponseHandler.error(reply, 'Failed to configure webhook. Please check Twilio settings.', 500)
       }
 
+      // Deactivate all other integrations first (only one active at a time)
+      await prisma.twilioSettings.updateMany({
+        where: { isActive: true },
+        data: { isActive: false }
+      })
+
+      // Activate the current integration
       await prisma.twilioSettings.updateMany({
         where: { integrationId },
         data: { isActive: true }
@@ -221,22 +228,20 @@ export class TwilioController {
 
       console.log(`🌐 Global webhook - message from ${from}: ${message}`)
 
-      // For sandbox, we need to identify which integration to use
-      // This is a limitation of sandbox - we can't have multiple webhooks
-      // We'll use the first active integration as a fallback
-      const activeIntegrations = await prisma.twilioSettings.findMany({
+      // For sandbox: only one integration can be active at a time
+      const activeIntegration = await prisma.twilioSettings.findFirst({
         where: { isActive: true },
         include: { integration: true }
       })
 
-      if (activeIntegrations.length === 0) {
-        twiml.message('No active integrations found. Please contact support.')
+      if (!activeIntegration) {
+        twiml.message('No active integration found. Please contact support.')
         reply.type('text/xml')
         return reply.status(200).send(twiml.toString())
       }
 
-      // Use the first active integration (in production, each client would have their own number)
-      const integration = activeIntegrations[0]
+      console.log(`✅ Using active integration: ${activeIntegration.integration.organizationName}`)
+      const integration = activeIntegration
       const twilioService = new TwilioService(
         integration.accountSid,
         integration.authToken,
