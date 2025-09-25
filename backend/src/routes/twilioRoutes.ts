@@ -47,7 +47,7 @@ export async function twilioRoutes(fastify: FastifyInstance) {
   }, TwilioController.activateIntegration)
 
   fastify.post('/twilio/webhook/:integrationId', TwilioController.handleWebhook)
-  fastify.post('/twilio/webhook/global', TwilioController.handleWebhook)
+  fastify.post('/twilio/webhook/global', TwilioController.handleGlobalWebhook)
 
   fastify.delete('/twilio/integrations/:integrationId', {
     preHandler: [authMiddleware, requireUser],

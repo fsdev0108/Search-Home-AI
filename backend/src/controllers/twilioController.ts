@@ -235,12 +235,20 @@ export class TwilioController {
       })
 
       if (!activeIntegration) {
+        console.log(`❌ No active integration found`)
         twiml.message('No active integration found. Please contact support.')
         reply.type('text/xml')
         return reply.status(200).send(twiml.toString())
       }
 
       console.log(`✅ Using active integration: ${activeIntegration.integration.organizationName}`)
+      console.log(`🔧 Integration details:`, {
+        accountSid: activeIntegration.accountSid?.substring(0, 8) + '...',
+        phoneNumber: activeIntegration.phoneNumber,
+        replicaId: activeIntegration.replicaId,
+        isActive: activeIntegration.isActive
+      })
+
       const integration = activeIntegration
       const twilioService = new TwilioService(
         integration.accountSid,
@@ -249,18 +257,23 @@ export class TwilioController {
         integration.replicaId || ''
       )
 
+      console.log(`🤖 Processing message with TwilioService...`)
       const responseText = await twilioService.processMessageForTwiML(body)
+      console.log(`📤 Response from TwilioService:`, responseText)
+      
       if (responseText) {
         twiml.message(responseText)
+        console.log(`✅ TwiML response sent:`, responseText)
       } else {
         twiml.message('Thank you for your message!')
+        console.log(`⚠️ No response from TwilioService, sent default message`)
       }
 
       reply.type('text/xml')
       return reply.status(200).send(twiml.toString())
 
     } catch (error) {
-      console.error('Error handling global webhook:', error)
+      console.error('❌ Error handling global webhook:', error)
       
       const twiml = new twilio.twiml.MessagingResponse()
       twiml.message('Sorry, there was an error processing your message.')
