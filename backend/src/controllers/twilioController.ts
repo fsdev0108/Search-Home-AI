@@ -268,8 +268,13 @@ export class TwilioController {
         console.log(`⚠️ No response from TwilioService, sent default message`)
       }
 
+      const twimlResponse = twiml.toString()
+      console.log(`📋 TwiML XML:`, twimlResponse)
+      
       reply.type('text/xml')
-      return reply.status(200).send(twiml.toString())
+      reply.header('Content-Type', 'text/xml; charset=utf-8')
+      console.log(`📤 Sending TwiML response with status 200`)
+      return reply.status(200).send(twimlResponse)
 
     } catch (error) {
       console.error('❌ Error handling global webhook:', error)
