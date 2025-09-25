@@ -15,6 +15,7 @@ const Widget = ({ onTabChange }) => {
     const [generatedCode, setGeneratedCode] = useState('')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [showDemo, setShowDemo] = useState(false)
 
     // Get current user from localStorage
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
@@ -22,6 +23,11 @@ const Widget = ({ onTabChange }) => {
 
     useEffect(() => {
         loadData()
+
+        // Cleanup function to remove widget when component unmounts
+        return () => {
+            stopDemo()
+        }
     }, [])
 
     const loadData = async () => {
@@ -73,20 +79,25 @@ const Widget = ({ onTabChange }) => {
             return
         }
 
+        // Use local widget URL for development
+        const widgetUrl = process.env.NODE_ENV === 'development'
+            ? 'http://localhost:3001/chat-widget.js'
+            : 'https://sensay.ai/widget/chat-widget.min.js';
+
         const widgetCode = `<!-- Sensay AI Chat Widget -->
 <script>
   (function() {
     var script = document.createElement('script');
-    script.src = 'https://sensay.ai/widget/chat-widget.min.js';
+    script.src = '${widgetUrl}';
     script.async = true;
     script.onload = function() {
-      SensayWidget.init({
-        replicaId: '${selectedReplica.uuid}',
-        integrationId: '${currentIntegration.id}',
+      RealEstateChat.init({
+        apiKey: '${currentIntegration.organizationSecret}',
+        userId: '${currentUser.id || currentUser.sensayUserId}',
+        replicaUuid: '${selectedReplica.uuid}',
         position: '${widgetConfig.position}',
         theme: '${widgetConfig.theme}',
-        primaryColor: '${widgetConfig.primaryColor}',
-        apiKey: '${currentIntegration.apiKey || 'YOUR_API_KEY'}'
+        primaryColor: '${widgetConfig.primaryColor}'
       });
     };
     document.head.appendChild(script);
@@ -104,6 +115,71 @@ const Widget = ({ onTabChange }) => {
             console.error('Failed to copy to clipboard:', error)
             alert('Failed to copy to clipboard. Please copy manually.')
         }
+    }
+
+    const startDemo = () => {
+        if (!selectedReplica || !currentIntegration) {
+            setError('Please select a replica and ensure integration is available')
+            return
+        }
+        setShowDemo(true)
+
+        // Load the widget script dynamically
+        const script = document.createElement('script')
+        script.src = process.env.NODE_ENV === 'development'
+            ? 'http://localhost:3001/chat-widget.js'
+            : 'https://sensay.ai/widget/chat-widget.min.js'
+        script.async = true
+        script.onload = () => {
+            // Initialize the widget with demo configuration
+            if (window.RealEstateChat) {
+                window.RealEstateChat.init({
+                    apiKey: currentIntegration.organizationSecret,
+                    userId: currentUser.id || currentUser.sensayUserId,
+                    replicaUuid: selectedReplica.uuid,
+                    position: 'bottom-right',
+                    theme: widgetConfig.theme,
+                    primaryColor: widgetConfig.primaryColor,
+                    demoMode: false // Use real API
+                })
+            }
+        }
+        document.head.appendChild(script)
+    }
+
+    const stopDemo = () => {
+        setShowDemo(false)
+
+        // Remove widget from DOM
+        const widget = document.getElementById('real-estate-chat-widget')
+        if (widget) {
+            widget.remove()
+        }
+
+        // Remove any chat widget related elements
+        const chatElements = document.querySelectorAll('[id*="chat"], [class*="chat-widget"]')
+        chatElements.forEach(element => {
+            if (element.id.includes('real-estate') || element.className.includes('chat-widget')) {
+                element.remove()
+            }
+        })
+
+        // Remove widget script
+        const scripts = document.querySelectorAll('script[src*="chat-widget"]')
+        scripts.forEach(script => script.remove())
+
+        // Clean up global widget instance
+        if (window.RealEstateChat) {
+            // Call destroy method if it exists
+            if (typeof window.RealEstateChat.destroy === 'function') {
+                window.RealEstateChat.destroy()
+            }
+            delete window.RealEstateChat
+        }
+
+        // Remove any widget styles that might have been injected
+        const widgetStyles = document.querySelectorAll('style[data-widget="real-estate-chat"]')
+        widgetStyles.forEach(style => style.remove())
     }
 
     if (loading) {
@@ -213,17 +289,62 @@ const Widget = ({ onTabChange }) => {
                             </div>
                         </div>
 
-                        <Button
-                            onClick={generateWidgetCode}
-                            disabled={!selectedReplica}
-                            className="w-full"
-                        >
-                            Generate Widget Code
-                        </Button>
+                        <div className="space-y-3">
+                            <Button
+                                onClick={generateWidgetCode}
+                                disabled={!selectedReplica}
+                                className="w-full"
+                            >
+                                Generate Widget Code
+                            </Button>
+
+                            <Button
+                                onClick={showDemo ? stopDemo : startDemo}
+                                disabled={!selectedReplica}
+                                variant={showDemo ? "outline" : "primary"}
+                                className="w-full"
+                            >
+                                {showDemo ? 'Stop Demo' : 'Start Live Demo'}
+                            </Button>
+                        </div>
                     </div>
                 </Card>
 
-                {generatedCode && (
+                {showDemo ? (
+                    <Card>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-gray-900">Live Widget Demo</h2>
+                            <Button
+                                variant="outline"
+                                onClick={stopDemo}
+                            >
+                                Stop Demo
+                            </Button>
+                        </div>
+
+                        <div className="bg-gray-50 rounded-lg p-4 h-96 flex flex-col items-center justify-center">
+                            <div className="text-center">
+                                <div className="text-gray-400 mb-4">
+                                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Widget Loaded!</h3>
+                                <p className="text-gray-600 mb-4">
+                                    The real estate chat widget is now active. Look for the chat button in the bottom-right corner of your screen.
+                                </p>
+                                <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-md text-sm">
+                                    ✅ Widget is running - Chat button should be visible on screen
+                                </div>
+                                <div className="text-sm text-gray-500 mb-4">
+                                    <p><strong>Replica:</strong> {selectedReplica?.name}</p>
+                                    <p><strong>Theme:</strong> {widgetConfig.theme}</p>
+                                    <p><strong>Position:</strong> {widgetConfig.position}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                ) : generatedCode ? (
                     <Card>
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold text-gray-900">Generated Widget Code</h2>
@@ -239,6 +360,25 @@ const Widget = ({ onTabChange }) => {
                             <pre className="text-sm">
                                 <code>{generatedCode}</code>
                             </pre>
+                        </div>
+                    </Card>
+                ) : (
+                    <Card>
+                        <div className="text-center py-12">
+                            <div className="text-gray-400 mb-4">
+                                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Widget Demo</h3>
+                            <p className="text-gray-600 mb-4">Select a replica and start a live demo to test your AI assistant</p>
+                            <Button
+                                onClick={startDemo}
+                                disabled={!selectedReplica}
+                                variant="outline"
+                            >
+                                Start Demo
+                            </Button>
                         </div>
                     </Card>
                 )}
