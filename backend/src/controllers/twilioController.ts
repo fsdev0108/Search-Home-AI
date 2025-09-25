@@ -220,13 +220,12 @@ export class TwilioController {
     }
   }
 
-  static async handleGlobalWebhook(body: any, reply: FastifyReply) {
+  static async handleGlobalWebhook(request: FastifyRequest, reply: FastifyReply) {
     try {
+      const body = request.body as any
       const twiml = new twilio.twiml.MessagingResponse()
-      const from = body.From?.replace('whatsapp:', '')
-      const message = body.Body
-
-      console.log(`🌐 Global webhook - message from ${from}: ${message}`)
+      
+      console.log(`🌐 Global webhook received:`, JSON.stringify(body, null, 2))
 
       // For sandbox: only one integration can be active at a time
       const activeIntegration = await prisma.twilioSettings.findFirst({
