@@ -108,13 +108,13 @@ export class TwilioService {
       console.log(`📱 WhatsApp message from ${from}: ${message}`)
 
       if (!message || message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi')) {
-        return "👋 Hello! I'm your real estate assistant. Ask me anything about properties!"
+        return "Hello! I'm your real estate assistant. Ask me anything about properties!"
       }
 
       // Check if this is a join command for specific real estate company
       if (message.toLowerCase().startsWith('join ')) {
         const companyCode = message.toLowerCase().replace('join ', '').trim()
-        return `🏠 Welcome to ${companyCode} real estate! How can I help you find your perfect property?`
+        return `Welcome to ${companyCode} real estate! How can I help you find your perfect property?`
       }
 
       if (!this.replicaId) {
