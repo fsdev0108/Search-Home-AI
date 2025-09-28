@@ -21,20 +21,10 @@ export async function authRoutes(fastify: FastifyInstance) {
     try {
       const { email, password } = request.body as any
 
-      // Get integration to find user in database
-      const integration = await prisma.integrationSettings.findFirst()
-      if (!integration) {
-        return reply.status(500).send({
-          success: false,
-          error: 'No integration found'
-        })
-      }
-
-      // Find user in database (users created via Sensay API)
+      // Find user in database across all integrations
       const dbUser = await prisma.user.findFirst({
         where: {
-          email: email,
-          integrationId: integration.id
+          email: email
         }
       })
 
