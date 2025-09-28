@@ -35,7 +35,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         })
       }
 
-      const isValidPassword = await bcrypt.compare(password, (dbUser as any).password)
+      const isValidPassword = await bcrypt.compare(password, dbUser.password)
       
       if (!isValidPassword) {
         return reply.status(401).send({
@@ -136,16 +136,41 @@ export async function authRoutes(fastify: FastifyInstance) {
       })
 
       // Create user in Sensay
+      console.log('🔍 Creating user in Sensay...')
       const sensayService = new SensayApiService(integration.organizationSecret)
       const sensayUser = await sensayService.createUser({
         name,
         email
       })
+      console.log('✅ Sensay user created:', sensayUser)
 
       const saltRounds = 10
       const hashedPassword = await bcrypt.hash(password, saltRounds)
+      console.log('✅ Password hashed successfully')
+
+      // Validate required data before saving
+      console.log('🔍 Validating Sensay user data...')
+      if (!sensayUser?.id) {
+        console.error('❌ Sensay user ID is missing:', sensayUser)
+        throw new Error('Sensay user ID is missing')
+      }
+      if (!sensayUser?.name) {
+        console.error('❌ Sensay user name is missing:', sensayUser)
+        throw new Error('Sensay user name is missing')
+      }
+      if (!sensayUser?.email) {
+        console.error('❌ Sensay user email is missing:', sensayUser)
+        throw new Error('Sensay user email is missing')
+      }
+      console.log('✅ Sensay user data validated')
 
       // Save user to local database
+      console.log('🔍 Saving user to local database...')
+      console.log('Integration ID:', integration.id)
+      console.log('Sensay User ID:', sensayUser.id)
+      console.log('User Name:', sensayUser.name)
+      console.log('User Email:', sensayUser.email)
+      
       const localUser = await prisma.user.create({
         data: {
           integrationId: integration.id,
@@ -153,8 +178,9 @@ export async function authRoutes(fastify: FastifyInstance) {
           name: sensayUser.name,
           email: sensayUser.email,
           password: hashedPassword
-        } as any
+        }
       })
+      console.log('✅ User saved to local database:', localUser.id)
 
       const jwt = require('jsonwebtoken')
       const secret = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
@@ -183,6 +209,12 @@ export async function authRoutes(fastify: FastifyInstance) {
       })
 
     } catch (error: any) {
+      console.error('❌ Error in user creation process:')
+      console.error('Error type:', typeof error)
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+      console.error('Full error object:', error)
+      
       request.log.error('Error creating user:', error)
       return reply.status(500).send({
         success: false,

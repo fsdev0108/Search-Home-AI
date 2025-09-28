@@ -1,10 +1,10 @@
 {
   "version": "1.0.0",
-  "buildDate": "2025-09-18T17:08:09.351Z",
+  "buildDate": "2025-09-28T14:00:12.394Z",
   "inputFile": "chat-widget.js",
   "outputFile": "chat-widget.min.js",
   "sourceMapFile": "chat-widget.min.js.map",
-  "originalSize": 17788,
-  "minifiedSize": 11162,
+  "originalSize": 17982,
+  "minifiedSize": 11276,
   "reduction": 37
 }

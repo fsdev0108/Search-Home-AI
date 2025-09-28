@@ -319,8 +319,16 @@
 
         .typing-indicator {
           display: flex;
+          flex-direction: row;
           gap: 4px;
           padding: 12px 16px;
+        }
+
+        .typing-indicator .message-content {
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+          align-items: center;
         }
 
         .typing-dot {
