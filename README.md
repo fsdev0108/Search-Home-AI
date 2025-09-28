@@ -1,4 +1,4 @@
-# 🏠 Sensay Real Estate AI
+# 🏠 Herainov
 
 ## 👉 "Your smart real estate assistant, on any channel."
 
@@ -37,12 +37,6 @@ A comprehensive SaaS platform for real estate agencies that centralizes property
 - **Real-time Updates**: Live data synchronization
 - **Custom Fields**: Flexible property attributes
 
-### 🎨 **Customizable Interface**
-- Brand integration with custom colors and logos
-- Responsive design for desktop and mobile
-- Easy setup with no technical knowledge required
-- Scalable architecture that grows with your business
-
 ## 🏗️ Technical Architecture
 
 ```
@@ -63,10 +57,10 @@ A comprehensive SaaS platform for real estate agencies that centralizes property
 ```
 
 ### **Modern Tech Stack**
-- **Backend**: Fastify + TypeScript for high-performance API
+- **Backend**: Fastify + Nodejs + TypeScript
 - **Admin Panel**: React + Vite for management interface
 - **AI Engine**: Sensay API for intelligent conversations
-- **Database**: PostgreSQL for reliable data storage
+- **Database**: PostgreSQL
 - **Integrations**: Twilio (WhatsApp), Telegram Bot API, HubSpot API
 
 ## 📊 Business Impact
@@ -87,37 +81,44 @@ A comprehensive SaaS platform for real estate agencies that centralizes property
 ## 🚀 Quick Start
 
 ### **1. Live Demo**
-- **Admin Panel**: [Your Admin URL]
-- **WhatsApp Test**: Send "Hi" to +1 415 523 8886
+- **Admin Panel**: [https://sensay-search-home-ai.vercel.app/]
 - **Widget Test**: Available in admin panel
-- **Local Widget**: http://localhost:3001 (development)
+- **WhatsApp and Telegram Integrations**: Create and configure on admin panel
 
 ### **2. Local Development**
 ```bash
 # Clone repository
-git clone [repository-url]
+git clone [https://github.com/vivipolli/sensay-search-home-ai.git]
 cd sensay
 
 # Backend setup
 cd backend
-npm install
+yarn install
 cp .env.example .env
 # Configure your environment variables
-npm run dev
+yarn dev
 
 # Admin panel setup
 cd ../admin
-npm install
-npm run dev
+cp .env.example .env
+# configure your environment variables
+yarn install
+yarn dev
 
 # Widget setup
 cd ../embed-widget
 npm install
-npm run dev
+cp .env.example .env
+# configure your environment variables
+node server.js
 # Widget runs on http://localhost:3001
+
+### **Required Integrations**
+1. **Sensay Account**: Get organization secret
+2. **Twilio Account**: WhatsApp Business API
+3. **Telegram Bot**: Create bot with @BotFather
+4. **HubSpot Account**: Simulated for now
 ```
-
-
 
 ## 📁 Project Structure
 
@@ -147,38 +148,6 @@ sensay/
     └── integrations.md     # Integration Guide
 ```
 
-## 🔧 Configuration
-
-### **Environment Variables**
-```bash
-# Sensay API
-SENSAY_ORGANIZATION_SECRET="your_sensay_secret"
-SENSAY_BASE_URL="https://api.sensay.io/v1"
-
-# WhatsApp (Twilio)
-TWILIO_ACCOUNT_SID="AC..."
-TWILIO_AUTH_TOKEN="auth_token_here"
-TWILIO_PHONE_NUMBER="+14155238886"
-
-# Telegram
-TELEGRAM_BOT_TOKEN="bot_token_here"
-
-# HubSpot
-HUBSPOT_API_KEY="hubspot_api_key_here"
-
-# Database
-DATABASE_URL="postgresql://user:password@host:port/database"
-
-# JWT
-JWT_SECRET="your_jwt_secret"
-```
-
-### **Required Integrations**
-1. **Sensay Account**: Get organization secret
-2. **Twilio Account**: WhatsApp Business API
-3. **Telegram Bot**: Create bot with @BotFather
-4. **HubSpot Account**: CRM API access
-
 ## 📡 API Overview
 
 For complete API documentation, see **[API Reference](docs/api.md)**.
@@ -201,7 +170,6 @@ For complete API documentation, see **[API Reference](docs/api.md)**.
 
 ### **Property Management Companies**
 - **Tenant Support**: Handle maintenance requests and inquiries
-- **Property Showings**: Schedule and manage property viewings
 - **Documentation**: Provide lease information and property details
 - **Communication**: Centralized communication across all properties
 
@@ -233,32 +201,6 @@ For complete API documentation, see **[API Reference](docs/api.md)**.
 - **✅ Demo Ready**: Live demonstration available
 - **✅ Scalable**: Ready for production deployment
 
-### **Validation Metrics**
-- **Response Time**: < 2 seconds average
-- **Accuracy**: 95% relevant property recommendations
-- **Uptime**: 99.9% availability
-- **User Satisfaction**: 4.8/5 rating in testing
-
-## 🚀 Next Steps
-
-### **Immediate (Next 30 Days)**
-- **Pilot Program**: Launch with 5 real estate agencies
-- **User Feedback**: Collect and implement improvements
-- **Performance Optimization**: Enhance response times
-- **Documentation**: Complete user guides and training materials
-
-### **Short-term (3-6 Months)**
-- **Market Launch**: Public availability
-- **Feature Expansion**: Advanced analytics, custom integrations
-- **Partnership Development**: Real estate software providers
-- **Funding**: Seed round for scaling
-
-### **Long-term (6-12 Months)**
-- **International Expansion**: Multi-language support
-- **Advanced AI**: Predictive analytics, market insights
-- **Platform Ecosystem**: Third-party integrations
-- **Series A**: Growth capital for market expansion
-
 ## 📚 Documentation
 
 ### **Technical Documentation**
@@ -268,29 +210,6 @@ For complete API documentation, see **[API Reference](docs/api.md)**.
 - **[Integrations](docs/integrations.md)**: Integration guides
 - **[Deployment](docs/deployment.md)**: Deployment and configuration
 
-### **Business Documentation**
-- **[Dorahacks Presentation](DORAHACKS_PRESENTATION.md)**: Business presentation for hackathon
-
-## 🛠️ Development
-
-### **Available Scripts**
-```bash
-# Backend
-npm run dev          # Development server
-npm run build        # Production build
-npm run start        # Start production server
-npx prisma studio    # Database interface
-npx prisma db push   # Sync database schema
-
-# Admin Panel
-npm run dev          # Development server
-npm run build        # Production build
-npm run preview      # Preview production build
-
-# Embed Widget
-npm run dev          # Development server
-npm run build:prod   # Production build with API key
-```
 
 ## 📄 License
 
