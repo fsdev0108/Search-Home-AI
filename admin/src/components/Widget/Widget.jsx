@@ -79,10 +79,12 @@ const Widget = ({ onTabChange }) => {
             return
         }
 
-        // Use local widget URL for development
-        const widgetUrl = process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3001/chat-widget.js'
-            : 'https://sensay.ai/widget/chat-widget.min.js';
+        // Use environment variable for widget URL
+        const widgetUrl = import.meta.env.VITE_EMBED_WIDGET
+            ? `${import.meta.env.VITE_EMBED_WIDGET}chat-widget.js`
+            : import.meta.env.DEV
+                ? 'http://localhost:3001/chat-widget.js'
+                : 'https://sensay.ai/widget/chat-widget.min.js';
 
         const widgetCode = `<!-- Sensay AI Chat Widget -->
 <script>
@@ -126,9 +128,11 @@ const Widget = ({ onTabChange }) => {
 
         // Load the widget script dynamically
         const script = document.createElement('script')
-        script.src = process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3001/chat-widget.js'
-            : 'https://sensay.ai/widget/chat-widget.min.js'
+        script.src = import.meta.env.VITE_EMBED_WIDGET
+            ? `${import.meta.env.VITE_EMBED_WIDGET}chat-widget.js`
+            : import.meta.env.DEV
+                ? 'http://localhost:3001/chat-widget.js'
+                : 'https://sensay.ai/widget/chat-widget.min.js'
         script.async = true
         script.onload = () => {
             // Initialize the widget with demo configuration
