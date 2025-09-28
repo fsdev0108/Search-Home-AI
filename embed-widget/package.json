@@ -8,6 +8,7 @@
     "build:prod": "NODE_ENV=production node build.js",
     "dev": "node server.js",
     "start": "node server.js",
+    "prestart": "npm run build:prod",
     "test": "echo \"No tests specified\" && exit 0",
     "lint": "echo \"No linter specified\" && exit 0"
   },
@@ -32,7 +33,8 @@
   },
   "homepage": "https://github.com/your-org/real-estate-ai-widget#readme",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   },
   "files": [
     "chat-widget.js",
@@ -41,6 +43,7 @@
     "EMBED_DOCUMENTATION.md",
     "embed-example.html"
   ],
+  "dependencies": {},
   "devDependencies": {},
   "peerDependencies": {},
   "browserslist": [
