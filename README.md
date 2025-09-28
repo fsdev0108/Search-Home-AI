@@ -59,7 +59,7 @@ A comprehensive SaaS platform for real estate agencies that centralizes property
 ### **Modern Tech Stack**
 - **Backend**: Fastify + Nodejs + TypeScript
 - **Admin Panel**: React + Vite for management interface
-- **AI Engine**: Sensay API for intelligent conversations
+- **AI Engine**: Sensay API (GPT-5, Gemini Pro 2.5, Grok 4) for intelligent conversations
 - **Database**: PostgreSQL
 - **Integrations**: Twilio (WhatsApp), Telegram Bot API, HubSpot API
 
@@ -183,6 +183,7 @@ For complete API documentation, see **[API Reference](docs/api.md)**.
 
 ### **Technical Advantages**
 - **Multi-Channel AI**: First platform to offer WhatsApp + Telegram + Web
+- **Sensay-Powered Intelligence**: Advanced AI models (GPT-5, Gemini Pro 2.5, Grok 4) for superior conversations
 - **Real-time Integration**: Live data sync with existing CRM systems
 - **Customizable AI**: Personality and response style customization
 - **Scalable Architecture**: Handles thousands of concurrent conversations
@@ -200,6 +201,8 @@ For complete API documentation, see **[API Reference](docs/api.md)**.
 - **✅ Integrations Working**: WhatsApp, Telegram, HubSpot, Web Widget
 - **✅ Demo Ready**: Live demonstration available
 - **✅ Scalable**: Ready for production deployment
+- **✅ Client Prospecting**: Already started real client prospecting and validation
+- **✅ Landing Page**: Professional website at [https://herainov.framer.website/en](https://herainov.framer.website/en)
 
 ## 📚 Documentation
 
