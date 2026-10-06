@@ -88,8 +88,8 @@ A comprehensive SaaS platform for real estate agencies that centralizes property
 ### **2. Local Development**
 ```bash
 # Clone repository
-git clone [https://github.com/vivipolli/sensay-search-home-ai.git]
-cd sensay
+git clone [https://github.com/fsdev0108/Search-Home-AI.git]
+cd Search-Home-AI
 
 # Backend setup
 cd backend
